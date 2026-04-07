@@ -1,6 +1,6 @@
 {
   "name": "waifu",
-  "main": "src/worker.js",
+  "main": "src/worker.ts",
   "workers_dev": true,
   "preview_urls": false,
   "compatibility_date": "2026-04-07",
