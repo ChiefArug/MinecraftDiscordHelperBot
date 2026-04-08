@@ -38,6 +38,10 @@ class PingResponse extends JsonResponse {
 	}
 }
 
+// TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
+// TODO: Respond initially with a defer or message then send a response later on to avoid the 3 second limit which has started to be hit
+// TODO: respond to GET requests with basic html page with bot install link
+
 export default {
 	/**
 	 * Every request to a worker will start in the `fetch` method.
