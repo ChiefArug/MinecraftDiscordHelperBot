@@ -29,6 +29,18 @@ const __commands = {
       }
     ]
   },
+	jij: {
+		description: "Search for a mod or library being jar-in-jarred",
+		options: [
+			{
+				type: CommandOptionType.STRING,
+				name: "query",
+				description: "A substring of what you want to search for, ie mixinextras-neoforge",
+				min_length: 3,
+				max_length: 64
+			}
+		]
+	}
 }
 export declare type CommandName = keyof typeof __commands
 export const COMMANDS = __commands as Record<CommandName,{description: string, options?: CommandOption[]}>

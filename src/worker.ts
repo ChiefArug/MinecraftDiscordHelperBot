@@ -87,22 +87,31 @@ export default {
 					case 'modid': {
 						const modid = message.data.options.find(o => o.name == 'modid')?.value as string;
 						const result = await query(ModId, { 'modid': modid }) as {gameVersions: GameVersion[]};
-						// type interim = { loader: Loader, version: string, curseforgeProjectId?: number, modrinthProjectId?: string };
-						const cfMods: Record<number, {loader: Loader, version: string, }[]> = {}
-						const mrMods: Record<string, {loader: Loader, version: string, }[]> = {}
+						const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {}
+						const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {}
 						for (const gameVersion of result.gameVersions) {
 							const { loader, version } = gameVersion;
 							for (const { node } of gameVersion.mods.edges) {
 								const cf = node.curseforgeProjectId;
 								const mr = node.modrinthProjectId;
-								if (cf) (cfMods[cf] ??= []).push({loader, version});
-								if (mr) (mrMods[mr] ??= []).push({loader, version});
+								const modids = node.modIds as string[];
+								if (cf) (cfMods[cf] ??= []).push(`[${modids}] ${loader} ${version}`);
+								if (mr) (mrMods[mr] ??= []).push(`[${modids}] ${loader} ${version}`);
 							}
 						}
 						if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
 							return new MessageResponse(`No mods found with modid ${modid}`)
 
-						return new MessageResponse(`Mods found: \nModrinth: ${JSON.stringify(mrMods)}\nCurseForge: ${JSON.stringify(cfMods)}`);
+						const wrap = <T extends (string | number)>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
+							return Object.entries(values).map(([id, versionString]) => {
+								return `${prefix}${id} ${versionString}`;
+							}).join('\n');
+						}
+						return new MessageResponse(`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/',mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`);
+					}
+					case 'jij': {
+						const term = message.data.options.find(o => o.name == 'query')?.value;
+
 					}
 				}
 
