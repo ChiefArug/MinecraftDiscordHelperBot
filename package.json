@@ -7,15 +7,19 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
-    "ngrok": "ngrok http 8787"
+    "ngrok": "ngrok http 8787",
+    "types": "wrangler types; npx graphql-codegen --config graphql_schema_config.ts"
   },
   "devDependencies": {
+    "@0no-co/graphqlsp": "^1.15.3",
+    "@graphql-codegen/cli": "^6.2.1",
+    "@graphql-codegen/schema-ast": "^5.0.1",
+    "graphql": "^16.13.2",
     "wrangler": "^4.80.0"
   },
   "dependencies": {
     "@types/node": "^25.5.2",
     "discord-interactions": "^4.4.0",
-    "itty-router": "^5.0.23",
     "node-fetch": "^3.3.2"
   }
 }

@@ -1,7 +1,7 @@
 /**
  * @type {[string]: string}
  */
-import { COMMANDS } from './commands.ts';
+import { COMMANDS, type CommandName } from './commands.ts';
 import fetch from 'node-fetch';
 import fs from 'node:fs';
 
@@ -23,7 +23,12 @@ if (!applicationId) {
   );
 }
 
-console.log(Object.keys(COMMANDS).map((k) => ({name: k, description: COMMANDS[k]})))
+
+const filter = new Set(process.argv.slice(2).filter(s => s.length > 0).flatMap(s => s.split(" ")));
+const commandsToRegister = (filter.size > 0 ? Object.keys(COMMANDS)
+    .filter(c => filter.has(c)) : Object.keys(COMMANDS))
+    .map((k) => ({name: k, ...COMMANDS[k as CommandName]}))
+console.log(commandsToRegister)
 
 /**
  * Register all commands globally.  This can take o(minutes), so wait until
@@ -34,18 +39,18 @@ async function registerGlobalCommands() {
   await registerCommands(url);
 }
 
-async function registerCommands(url) {
+async function registerCommands(url: string) {
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bot ${token}`,
     },
     method: 'PUT',
-    body: JSON.stringify(Object.keys(COMMANDS).map((k) => ({name: k, description: COMMANDS[k]}))),
+    body: JSON.stringify(commandsToRegister),
   });
 
   if (response.ok) {
-    console.log('Registered all commands');
+    console.log(`Registered ${commandsToRegister.length}/${Object.keys(COMMANDS).length} commands`);
   } else {
     console.error('Error registering commands');
     const text = await response.text();

@@ -1,0 +1,8 @@
+schema: schema.graphql
+extensions:
+    endpoints:
+        waifu:
+            url: https://waifu.neoforged.net/api/graphql
+            headers:
+                  Authorization: ${WAIFU_TOKEN}
+documents: '**/*.graphql'
