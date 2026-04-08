@@ -2,9 +2,9 @@ import { InteractionResponseType, InteractionType, verifyKey } from 'discord-int
 import { COMMANDS } from './commands.js';
 import { Interaction } from './discord.ts';
 import { query } from './waifu.ts';
-import { graphql } from './graphql';
-import { MixinExtrasForgeOnNeoForge, ModId } from './queries.ts';
+import { JIJ, MixinExtrasForgeOnNeoForge, ModId } from './queries.ts';
 import { GameVersion, Loader, Mod } from './graphql/graphql.ts';
+import { clampInside } from './lib.ts';
 
 class JsonResponse extends Response {
 	constructor(body: { type: InteractionResponseType; data?: object }, init?: ResponseInit) {
@@ -85,7 +85,8 @@ export default {
 						return new MessageResponse(`Test command works: \`\`\`json\n${JSON.stringify(result, null, 1)}\`\`\``);
 					}
 					case 'modid': {
-						const modid = message.data.options.find(o => o.name == 'modid')?.value as string;
+						const modid = message.data.options?.find(o => o.name == 'modid')?.value as string;
+						if (!modid) return new MessageResponse("modid parameter is required!");
 						const result = await query(ModId, { 'modid': modid }) as {gameVersions: GameVersion[]};
 						const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {}
 						const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {}
@@ -110,8 +111,10 @@ export default {
 						return new MessageResponse(`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/',mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`);
 					}
 					case 'jij': {
-						const term = message.data.options.find(o => o.name == 'query')?.value;
-
+						const queryTerm = message.data.options?.find(o => o.name == 'query')?.value as string;
+						if (!queryTerm) return new MessageResponse("query parameter is required!")
+						const result = await query(JIJ, { term: queryTerm }) as {gameVersions: GameVersion[]};
+						return new MessageResponse(clampInside('```json\n', '```', JSON.stringify(result, null, 1), 2000));
 					}
 				}
 

@@ -70,7 +70,7 @@ export const JIJ = `query JIJ($term: String) {
 	gameVersions {
 		version
 		loader
-		mods(where: {anyNestedArtifact: {id: {matches: $term}}}) {
+		mods(where: {anyNestedArtifact: {id: {matches: $term}}} first: 10) {
 			count
 			edges {
 				node {
