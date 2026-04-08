@@ -1,6 +1,5 @@
 // noinspection SpellCheckingInspection
 
-
 // language=GraphQL
 export const MixinExtrasNeoForgeOnForge = `query ModsWithMEForge {
     gameVersion(loader: Forge, version: "1.20.1") {
@@ -22,7 +21,7 @@ export const MixinExtrasNeoForgeOnForge = `query ModsWithMEForge {
         }
     }
 }
-`
+`;
 
 // language=GraphQL
 export const MixinExtrasForgeOnNeoForge = `query ModsWithMEForge {
@@ -45,7 +44,7 @@ export const MixinExtrasForgeOnNeoForge = `query ModsWithMEForge {
         }
     }
 }
-`
+`;
 
 // language=GraphQL
 export const ModId = `query ModId($modid: String) {
@@ -64,7 +63,7 @@ export const ModId = `query ModId($modid: String) {
 		}
 	}
 }
-`
+`;
 // language=GraphQL
 export const JIJ = `query JIJ($term: String) {
 	gameVersions {
@@ -85,4 +84,4 @@ export const JIJ = `query JIJ($term: String) {
 			}
 		}
 	}
-}`
+}`;

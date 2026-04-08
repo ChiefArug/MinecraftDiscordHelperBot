@@ -11,8 +11,8 @@ class JsonResponse extends Response {
 		const jsonBody = JSON.stringify(body);
 		init = init ?? {
 			headers: {
-				'content-type': 'application/json;charset=UTF-8'
-			}
+				'content-type': 'application/json;charset=UTF-8',
+			},
 		};
 		super(jsonBody, init);
 	}
@@ -24,10 +24,10 @@ class MessageResponse extends JsonResponse {
 			{
 				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 				data: {
-					content: message
-				}
+					content: message,
+				},
 			},
-			init
+			init,
 		);
 	}
 }
@@ -65,7 +65,7 @@ export default {
 				return new Response('Bad request signature.', { status: 401 });
 			}
 
-			const message = await request.json() as Interaction;
+			const message = (await request.json()) as Interaction;
 			// console.log(message)
 			if (message.type === InteractionType.PING) {
 				// The `PING` message is used during the initial webhook handshake, and is
@@ -78,9 +78,8 @@ export default {
 						return new MessageResponse('Pong');
 					}
 					case 'query': {
-						const q = message.data.options.find(o => o.name == 'query')?.value;
-						if (q == null)
-							return new MessageResponse('Query was null!');
+						const q = message.data.options.find((o) => o.name == 'query')?.value;
+						if (q == null) return new MessageResponse('Query was null!');
 						const queryResult = await query(q as string);
 						return new MessageResponse(`\`\`\`json\n${JSON.stringify(queryResult, null, 1)}\`\`\``);
 					}
@@ -89,11 +88,11 @@ export default {
 						return new MessageResponse(`Test command works: \`\`\`json\n${JSON.stringify(result, null, 1)}\`\`\``);
 					}
 					case 'modid': {
-						const modid = message.data.options?.find(o => o.name == 'modid')?.value as string;
-						if (!modid) return new MessageResponse("modid parameter is required!");
-						const result = await query(ModId, { 'modid': modid }) as {gameVersions: GameVersion[]};
-						const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {}
-						const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {}
+						const modid = message.data.options?.find((o) => o.name == 'modid')?.value as string;
+						if (!modid) return new MessageResponse('modid parameter is required!');
+						const result = (await query(ModId, { modid: modid })) as { gameVersions: GameVersion[] };
+						const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {};
+						const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {};
 						for (const gameVersion of result.gameVersions) {
 							const { loader, version } = gameVersion;
 							for (const { node } of gameVersion.mods.edges) {
@@ -105,19 +104,23 @@ export default {
 							}
 						}
 						if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
-							return new MessageResponse(`No mods found with modid ${modid}`)
+							return new MessageResponse(`No mods found with modid ${modid}`);
 
-						const wrap = <T extends (string | number)>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
-							return Object.entries(values).map(([id, versionString]) => {
-								return `${prefix}${id} ${versionString}`;
-							}).join('\n');
-						}
-						return new MessageResponse(`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/',mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`);
+						const wrap = <T extends string | number>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
+							return Object.entries(values)
+								.map(([id, versionString]) => {
+									return `${prefix}${id} ${versionString}`;
+								})
+								.join('\n');
+						};
+						return new MessageResponse(
+							`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
+						);
 					}
 					case 'jij': {
-						const queryTerm = message.data.options?.find(o => o.name == 'query')?.value as string;
-						if (!queryTerm) return new MessageResponse("query parameter is required!")
-						const result = await query(JIJ, { term: queryTerm }) as {gameVersions: GameVersion[]};
+						const queryTerm = message.data.options?.find((o) => o.name == 'query')?.value as string;
+						if (!queryTerm) return new MessageResponse('query parameter is required!');
+						const result = (await query(JIJ, { term: queryTerm })) as { gameVersions: GameVersion[] };
 						return new MessageResponse(clampInside('```json\n', '```', JSON.stringify(result, null, 1), 2000));
 					}
 				}
@@ -127,5 +130,5 @@ export default {
 			console.log(message);
 			return new Response('Unknown interaction', { status: 501 });
 		}
-	}
+	},
 };
