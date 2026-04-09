@@ -53,6 +53,13 @@ export type CommandOptionData = {
 	  }
 );
 
+export const InteractionContextType = {
+	GUILD: 0,
+	BOT_DM: 1,
+	PRIVATE_CHANNEL: 2,
+} as const;
+export type InteractionContextType = (typeof InteractionContextType)[keyof typeof InteractionContextType]
+
 export type Snowflake = `${bigint}`;
 
 // some wip types

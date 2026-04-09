@@ -1,8 +1,17 @@
-import { CommandOptionType, type CommandOption } from './discord.ts';
+import { CommandOptionType, Interaction } from './discord.ts';
+import { Command, PingCommand } from './command.ts';
+import { PingResponse } from './response.ts';
 
 const __commands = {
-	ping: { description: 'Is the bot online?' },
-	test: { description: 'Test command - could do anything. Run it and see!' },
+	ping: new PingCommand(),
+	test: new (class extends Command {
+		constructor() {
+			super('test', 'Is the bot online?');
+		}
+		execute(_i: Interaction, _e: Env): Response {
+			return new PingResponse();
+		}
+	})(),
 	modid: {
 		description: 'Look up information about a particular Mod ID',
 		options: [
@@ -40,4 +49,5 @@ const __commands = {
 	},
 };
 export declare type CommandName = keyof typeof __commands;
-export const COMMANDS = __commands as Record<CommandName, { description: string; options?: CommandOption[] }>;
+// @ts-ignore
+export const COMMANDS = __commands as Record<CommandName, Command>;

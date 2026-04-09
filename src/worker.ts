@@ -1,42 +1,10 @@
-import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
-import { COMMANDS } from './commands.js';
+import { InteractionType, verifyKey } from 'discord-interactions';
 import { Interaction } from './discord.ts';
 import { query } from './waifu.ts';
 import { JIJ, MixinExtrasForgeOnNeoForge, ModId } from './queries.ts';
-import { GameVersion, Loader, Mod } from './graphql/graphql.ts';
+import { GameVersion, Loader } from './graphql/graphql.ts';
 import { clampInside } from './lib.ts';
-
-class JsonResponse extends Response {
-	constructor(body: { type: InteractionResponseType; data?: object }, init?: ResponseInit) {
-		const jsonBody = JSON.stringify(body);
-		init = init ?? {
-			headers: {
-				'content-type': 'application/json;charset=UTF-8',
-			},
-		};
-		super(jsonBody, init);
-	}
-}
-
-class MessageResponse extends JsonResponse {
-	constructor(message: string, init?: ResponseInit) {
-		super(
-			{
-				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-				data: {
-					content: message,
-				},
-			},
-			init,
-		);
-	}
-}
-
-class PingResponse extends JsonResponse {
-	constructor() {
-		super({ type: InteractionResponseType.PONG });
-	}
-}
+import { MessageResponse, PingResponse } from './response.ts';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
 // TODO: Respond initially with a defer or message then send a response later on to avoid the 3 second limit which has started to be hit
@@ -51,6 +19,27 @@ export default {
 	 * @returns
 	 */
 	async fetch(request: Request, env: Env) {
+		switch (request.method) {
+			case 'GET':
+				return new Response(
+					`<!DOCTYPE html>
+					<head>
+						<title>ChiefArug's WAIFU Helper</title>
+						<meta name="twitter:title" content="ChiefArug's Minecraft Modding Crash Helper Bot">
+						<meta name="twitter:description" content="A helper Discord bot for querying NeoForged's WAIFU database">
+						<meta name="darkreader-lock">
+					</head>
+					<body style="background-color:rgb(34, 36, 39); text-align: center;color: rgb(231, 217, 211); font-family: 'Noto Sans', 'Open Sans', Helvetica, Arial, sans-serif; margin: 30px">
+						<h1>ChiefArug's Minecraft Modding Crash Helper Bot</h1>
+						<p style="margin: 40px">A helper bot for querying NeoForged's WAIFU database</p>
+						<a href="https://discord.com/oauth2/authorize?client_id=${env.DISCORD_APPLICATION_ID}" target="_blank" rel="noopener noreferrer" style="padding: 10px 20px; margin: 8px 4px; background-color: rgb(216, 130, 49); border-radius: 4px; text-decoration: none; color: rgb(231, 217, 211); text-shadow: black 0px 0px 2px; font-size: 16px; font-weight: 700">Install</a>
+					</body>
+				`,
+					{
+						headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+					},
+				);
+		}
 		if (request.method === 'POST') {
 			// Using the incoming headers, verify this request actually came from discord.
 			const signature = request.headers.get('x-signature-ed25519');
