@@ -2,7 +2,7 @@ import { InteractionResponseType } from 'discord-interactions';
 
 export class JsonResponse extends Response {
 	constructor(body: { type: InteractionResponseType; data?: object }, init?: ResponseInit) {
-		const jsonBody = "no"//JSON.stringify(body);
+		const jsonBody = JSON.stringify(body);
 		init = init ?? {
 			headers: {
 				'content-type': 'application/json;charset=UTF-8',
