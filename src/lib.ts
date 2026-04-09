@@ -11,7 +11,7 @@ export const clampInside = (pre: string, post: string, content: string, length: 
 	if (content.length <= length - extra) {
 		return pre + content + post;
 	} else {
-		console.log(pre + content.substring(0, length - (extra + 3)) + '...' + post);
+		// console.log(pre + content.substring(0, length - (extra + 3)) + '...' + post);
 		return pre + content.substring(0, length - (extra + 3)) + '...' + post;
 	}
 };

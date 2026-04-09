@@ -116,7 +116,7 @@ export default {
 
 				return new MessageResponse('Command not implemented yet!');
 			}
-			console.log(message);
+			// console.log(message);
 			return new Response('Unknown interaction', { status: 501 });
 		}
 	},

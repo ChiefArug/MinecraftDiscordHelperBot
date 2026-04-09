@@ -23,8 +23,8 @@ export const query = async (q: string, variables: Record<string, string> = {}): 
 		console.error(`Query had errors: ${body['error']}`);
 		return;
 	} else if ('data' in body) {
-		console.log(body);
+		// console.log(body);
 		return body['data'];
 	}
-	console.log(body);
+	console.error('unknown grahql response: ' + body);
 };
