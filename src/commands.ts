@@ -1,17 +1,21 @@
-import { CommandOptionType, Interaction } from './discord.ts';
+import { CommandOptionType, InteractionContextType } from './discord.ts';
 import { Command, PingCommand } from './command.ts';
-import { PingResponse } from './response.ts';
 
+
+/*
+COMMANDS TO ADD
+Search by package substring
+Search by method usage
+Search
+
+ */
 const __commands = {
 	ping: new PingCommand(),
-	test: new (class extends Command {
-		constructor() {
-			super('test', 'Is the bot online?');
-		}
-		execute(_i: Interaction, _e: Env): Response {
-			return new PingResponse();
-		}
-	})(),
+	// test: new (class extends Command {
+	// 	async executeImpl(_i: CommandInteraction, _e: Env, _a: AckNow): Promise<InteractionResponse> {
+	// 		return new PingResponse();
+	// 	}
+	// })('test', 'A test command. Who knows what it could do?', undefined, undefined),
 	modid: {
 		description: 'Look up information about a particular Mod ID',
 		options: [
@@ -23,6 +27,7 @@ const __commands = {
 				max_length: 64,
 			},
 		],
+		contexts: [InteractionContextType.GUILD, InteractionContextType.BOT_DM, InteractionContextType.PRIVATE_CHANNEL],
 	},
 	query: {
 		description: 'Run the query passed in as a string',
@@ -34,6 +39,7 @@ const __commands = {
 				min_length: 7,
 			},
 		],
+		contexts: [InteractionContextType.GUILD, InteractionContextType.BOT_DM, InteractionContextType.PRIVATE_CHANNEL],
 	},
 	jij: {
 		description: 'Search for a mod or library being jar-in-jarred',
@@ -46,6 +52,7 @@ const __commands = {
 				max_length: 64,
 			},
 		],
+		contexts: [InteractionContextType.GUILD, InteractionContextType.BOT_DM, InteractionContextType.PRIVATE_CHANNEL],
 	},
 };
 export declare type CommandName = keyof typeof __commands;

@@ -1,14 +1,30 @@
 import { InteractionResponseType } from 'discord-interactions';
 
-export class JsonResponse extends Response {
+export abstract class InteractionResponse {
+	body: string;
+	headers: Record<string, string>;
+
+	protected constructor(body: string, headers: Record<string, string>) {
+		this.body = body;
+		this.headers = headers;
+	}
+
+	response() {
+		return new Response(this.body, { headers: this.headers });
+	}
+
+	request(target: URL): Request {
+		return new Request(target, { body: this.body, headers: this.headers });
+	}
+}
+
+export class JsonResponse extends InteractionResponse {
 	constructor(body: { type: InteractionResponseType; data?: object }, init?: ResponseInit) {
 		const jsonBody = JSON.stringify(body);
-		init = init ?? {
-			headers: {
-				'content-type': 'application/json;charset=UTF-8',
-			},
+		const headers = {
+			'content-type': 'application/json;charset=UTF-8',
 		};
-		super(jsonBody, init);
+		super(jsonBody, headers);
 	}
 }
 

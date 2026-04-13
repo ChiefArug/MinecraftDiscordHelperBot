@@ -5,9 +5,24 @@ import { JIJ, MixinExtrasForgeOnNeoForge, ModId } from './queries.ts';
 import { GameVersion, Loader } from './graphql/graphql.ts';
 import { clampInside } from './lib.ts';
 import { MessageResponse, PingResponse } from './response.ts';
+import { env } from 'cloudflare:workers';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
 // TODO: Respond initially with a defer or message then send a response later on to avoid the 3 second limit which has started to be hit
+
+const page = `<!DOCTYPE html>
+<head>
+	<title>ChiefArug's WAIFU Helper</title>
+	<meta name="twitter:title" content="ChiefArug's Minecraft Modding Crash Helper Bot">
+	<meta name="twitter:description" content="A helper Discord bot for querying NeoForged's WAIFU database">
+	<meta name="darkreader-lock">
+</head>
+<body style="background-color:rgb(34, 36, 39); text-align: center;color: rgb(231, 217, 211); font-family: 'Noto Sans', 'Open Sans', Helvetica, Arial, sans-serif; margin: 30px">
+	<h1>ChiefArug's Minecraft Modding Crash Helper Bot</h1>
+	<p style="margin: 40px">A helper bot for querying NeoForged's WAIFU database</p>
+	<a href="https://discord.com/oauth2/authorize?client_id=${env.DISCORD_APPLICATION_ID}" target="_blank" rel="noopener noreferrer" style="padding: 10px 20px; margin: 8px 4px; background-color: rgb(216, 130, 49); border-radius: 4px; text-decoration: none; color: rgb(231, 217, 211); text-shadow: black 0 0 2px; font-size: 16px; font-weight: 700">Install</a>
+</body>
+`;
 
 export default {
 	/**
@@ -17,29 +32,11 @@ export default {
 	 * @param {*} env A map of key/value pairs with env vars and secrets from the cloudflare env.
 	 * @returns
 	 */
-	async fetch(request: Request, env: Env) {
-		switch (request.method) {
-			case 'GET':
-				return new Response(
-					`<!DOCTYPE html>
-					<head>
-						<title>ChiefArug's WAIFU Helper</title>
-						<meta name="twitter:title" content="ChiefArug's Minecraft Modding Crash Helper Bot">
-						<meta name="twitter:description" content="A helper Discord bot for querying NeoForged's WAIFU database">
-						<meta name="darkreader-lock">
-					</head>
-					<body style="background-color:rgb(34, 36, 39); text-align: center;color: rgb(231, 217, 211); font-family: 'Noto Sans', 'Open Sans', Helvetica, Arial, sans-serif; margin: 30px">
-						<h1>ChiefArug's Minecraft Modding Crash Helper Bot</h1>
-						<p style="margin: 40px">A helper bot for querying NeoForged's WAIFU database</p>
-						<a href="https://discord.com/oauth2/authorize?client_id=${env.DISCORD_APPLICATION_ID}" target="_blank" rel="noopener noreferrer" style="padding: 10px 20px; margin: 8px 4px; background-color: rgb(216, 130, 49); border-radius: 4px; text-decoration: none; color: rgb(231, 217, 211); text-shadow: black 0px 0px 2px; font-size: 16px; font-weight: 700">Install</a>
-					</body>
-				`,
-					{
-						headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-					},
-				);
+	async fetch(request: Request, env: Env): Promise<Response> { switch (request.method) {
+		case 'GET': {
+			return new Response(page, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
 		}
-		if (request.method === 'POST') {
+		case 'POST': {
 			// Using the incoming headers, verify this request actually came from discord.
 			const signature = request.headers.get('x-signature-ed25519');
 			const timestamp = request.headers.get('x-signature-timestamp');
@@ -58,26 +55,26 @@ export default {
 			if (message.type === InteractionType.PING) {
 				// The `PING` message is used during the initial webhook handshake, and is
 				// required to configure the webhook in the developer portal.
-				return new PingResponse();
+				return new PingResponse().response();
 			} else if (message.type === InteractionType.APPLICATION_COMMAND) {
 				const command = message.data.name;
 				switch (command) {
 					case 'ping': {
-						return new MessageResponse('Pong');
+						return new MessageResponse('Pong').response();
 					}
 					case 'query': {
 						const q = message.data.options.find((o) => o.name == 'query')?.value;
-						if (q == null) return new MessageResponse('Query was null!');
+						if (q == null) return new MessageResponse('Query was null!').response();
 						const queryResult = await query(q as string);
-						return new MessageResponse(`\`\`\`json\n${JSON.stringify(queryResult, null, 1)}\`\`\``);
+						return new MessageResponse(`\`\`\`json\n${JSON.stringify(queryResult, null, 1)}\`\`\``).response();
 					}
-					case 'test': {
-						const result = await query(MixinExtrasForgeOnNeoForge);
-						return new MessageResponse(`Test command works: \`\`\`json\n${JSON.stringify(result, null, 1)}\`\`\``);
-					}
+					// case 'test': {
+					// 	const result = await query(MixinExtrasForgeOnNeoForge);
+					// 	return new MessageResponse(`Test command works: \`\`\`json\n${JSON.stringify(result, null, 1)}\`\`\``).response();
+					// }
 					case 'modid': {
 						const modid = message.data.options?.find((o) => o.name == 'modid')?.value as string;
-						if (!modid) return new MessageResponse('modid parameter is required!');
+						if (!modid) return new MessageResponse('modid parameter is required!').response();
 						const result = (await query(ModId, { modid: modid })) as { gameVersions: GameVersion[] };
 						const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {};
 						const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {};
@@ -92,7 +89,7 @@ export default {
 							}
 						}
 						if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
-							return new MessageResponse(`No mods found with modid ${modid}`);
+							return new MessageResponse(`No mods found with modid ${modid}`).response();
 
 						const wrap = <T extends string | number>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
 							return Object.entries(values)
@@ -103,20 +100,21 @@ export default {
 						};
 						return new MessageResponse(
 							`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
-						);
+						).response();
 					}
 					case 'jij': {
 						const queryTerm = message.data.options?.find((o) => o.name == 'query')?.value as string;
-						if (!queryTerm) return new MessageResponse('query parameter is required!');
+						if (!queryTerm) return new MessageResponse('query parameter is required!').response();
 						const result = (await query(JIJ, { term: queryTerm })) as { gameVersions: GameVersion[] };
-						return new MessageResponse(clampInside('```json\n', '```', JSON.stringify(result, null, 1), 2000));
+						return new MessageResponse(clampInside('```json\n', '```', JSON.stringify(result, null, 1), 2000)).response();
 					}
 				}
 
-				return new MessageResponse('Command not implemented yet!');
+				return new MessageResponse('Command not implemented yet!').response();
 			}
 			// console.log(message);
 			return new Response('Unknown interaction', { status: 501 });
 		}
-	},
-};
+	}
+	return new Response('Unknown method. Try GET or POST', { status: 400 });
+}};

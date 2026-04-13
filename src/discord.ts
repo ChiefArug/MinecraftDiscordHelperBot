@@ -20,38 +20,49 @@ export const CommandOptionType = {
 	ATTACHMENT: 11,
 } as const;
 export type CommandOptionType = (typeof CommandOptionType)[keyof typeof CommandOptionType];
+export type CommandOptionTypeT = {
+	[CommandOptionType.SUB_COMMAND]: never;
+	[CommandOptionType.SUB_COMMAND_GROUP]: never;
+	[CommandOptionType.STRING]: string;
+	[CommandOptionType.INTEGER]: number;
+	[CommandOptionType.BOOLEAN]: boolean;
+	[CommandOptionType.USER]: never;
+	[CommandOptionType.CHANNEL]: never;
+	[CommandOptionType.ROLE]: never;
+	[CommandOptionType.MENTIONABLE]: never;
+	[CommandOptionType.NUMBER]: number;
+	[CommandOptionType.ATTACHMENT]: never;
+};
+export type CommandOptionTypes = CommandOptionTypeT[keyof CommandOptionTypeT]
 
-export type CommandOption = {
-	type: CommandOptionType;
-	name: string;
-	description: string;
-	required?: boolean;
-	choices?: (string | number)[];
+export type NumberCommandOption = {
+	type: typeof CommandOptionType.NUMBER | typeof CommandOptionType.INTEGER;
+	choices?: number[];
 	min_value?: number;
 	max_value?: number;
+};
+export type StringCommandOption = {
+	type: typeof CommandOptionType.STRING;
 	min_length?: number;
 	max_length?: number;
+}
+type __commandOption<NAME extends string, T extends CommandOptionType> = {
+	name: NAME;
+	type: T;
+	description: string;
+	required?: boolean;
 	autocomplete?: boolean;
-};
+} & (NumberCommandOption | StringCommandOption);
+export type CommandOption<O extends Record<string, CommandOptionType>, N extends string = keyof O & string> = __commandOption<N, O[N]>;
 
-export type CommandOptionData = {
-	name: string;
-	type: CommandOptionType;
+
+type __commandOptionData<N extends string, T extends CommandOptionType> = {
+	name: N;
+	type: T;
+	value: CommandOptionTypeT[T];
 	focused?: boolean;
-} & (
-	| {
-			type: typeof CommandOptionType.BOOLEAN;
-			value: boolean;
-	  }
-	| {
-			type: typeof CommandOptionType.INTEGER | typeof CommandOptionType.NUMBER;
-			value: number;
-	  }
-	| {
-			type: typeof CommandOptionType.STRING;
-			value: string;
-	  }
-);
+};
+export type CommandOptionData<O extends Record<string, CommandOptionType>, N extends string = keyof O & string> = __commandOptionData<N, O[N]>;
 
 export const InteractionContextType = {
 	GUILD: 0,
@@ -79,30 +90,31 @@ export const CommandType = {
 };
 export type CommandType = (typeof CommandType)[keyof typeof CommandType];
 
-export type Interaction = {
+type BaseInteraction = {
 	id: Snowflake;
 	application_id: Snowflake;
 	type: InteractionType;
 	token: string;
 	message: Message;
-} & (
-	| { type: InteractionType.PING }
-	| {
-			type: InteractionType.APPLICATION_COMMAND;
-			data: {
-				id: Snowflake;
-				name: CommandName;
-				type: CommandType;
-				options: CommandOptionData[];
-				resolved?: ResolvedData;
-			};
-	  }
-	| {
-			type: InteractionType.MODAL_SUBMIT;
-			data: {
-				custom_id: string;
-				components: ComponentResponse[];
-				resolved?: ResolvedData;
-			};
-	  }
-);
+};
+
+export type PingInteraction = { type: InteractionType.PING } & BaseInteraction;
+export type CommandInteraction<O extends Record<string, CommandOptionType>> = {
+	type: InteractionType.APPLICATION_COMMAND;
+	data: {
+		id: Snowflake;
+		name: CommandName;
+		type: CommandType;
+		options: CommandOptionData<O, any>[];
+		resolved?: ResolvedData;
+	};
+} & BaseInteraction;
+export type ModalInteraction = {
+	type: InteractionType.MODAL_SUBMIT;
+	data: {
+		custom_id: string;
+		components: ComponentResponse[];
+		resolved?: ResolvedData;
+	};
+} & BaseInteraction;
+export type Interaction = PingInteraction | CommandInteraction<any> | ModalInteraction;
