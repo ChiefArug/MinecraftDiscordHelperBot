@@ -51,7 +51,7 @@ export const ModId = `query ModId($modid: String) {
 	gameVersions {
         version
         loader
-		mods(where: {modId: {equals: $modid}}, first: 2) {
+		mods(where: {modId: {matches: $modid}}, first: 2) {
 			edges {
                 node {
                     curseforgeProjectId

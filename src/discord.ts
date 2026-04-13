@@ -46,14 +46,15 @@ export type StringCommandOption = {
 	min_length?: number;
 	max_length?: number;
 }
-type __commandOption<NAME extends string, T extends CommandOptionType> = {
+type __commandOption<NAME extends string, T extends CommandOptionType, R extends boolean = false> = {
 	name: NAME;
 	type: T;
 	description: string;
-	required?: boolean;
+	required?: R;
 	autocomplete?: boolean;
 } & (NumberCommandOption | StringCommandOption);
-export type CommandOption<O extends Record<string, CommandOptionType>, N extends string = keyof O & string> = __commandOption<N, O[N]>;
+export type CommandOptions = Record<string, CommandOptionType>;
+export type CommandOption<O extends CommandOptions, N extends string = keyof O & string> = __commandOption<N, O[N]>;
 
 
 type __commandOptionData<N extends string, T extends CommandOptionType> = {
@@ -62,7 +63,7 @@ type __commandOptionData<N extends string, T extends CommandOptionType> = {
 	value: CommandOptionTypeT[T];
 	focused?: boolean;
 };
-export type CommandOptionData<O extends Record<string, CommandOptionType>, N extends string = keyof O & string> = __commandOptionData<N, O[N]>;
+export type CommandOptionData<O extends CommandOptions, N extends string = keyof O & string> = __commandOptionData<N, O[N]>;
 
 export const InteractionContextType = {
 	GUILD: 0,
@@ -99,7 +100,7 @@ type BaseInteraction = {
 };
 
 export type PingInteraction = { type: InteractionType.PING } & BaseInteraction;
-export type CommandInteraction<O extends Record<string, CommandOptionType>> = {
+export type CommandInteraction<O extends CommandOptions> = {
 	type: InteractionType.APPLICATION_COMMAND;
 	data: {
 		id: Snowflake;
