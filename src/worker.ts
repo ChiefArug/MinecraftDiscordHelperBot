@@ -15,6 +15,7 @@ const page = `<!DOCTYPE html>
 	<title>ChiefArug's WAIFU Helper</title>
 	<meta name="twitter:title" content="ChiefArug's Minecraft Modding Crash Helper Bot">
 	<meta name="twitter:description" content="A helper Discord bot for querying NeoForged's WAIFU database">
+	<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='0' y='0' width='64' height='64' fill='rgb(216, 130, 49)'/%3E%3C/svg%3E%0A"/>
 	<meta name="darkreader-lock">
 </head>
 <body style="background-color:rgb(34, 36, 39); text-align: center;color: rgb(231, 217, 211); font-family: 'Noto Sans', 'Open Sans', Helvetica, Arial, sans-serif; margin: 30px">
@@ -34,7 +35,11 @@ export default {
 	 */
 	async fetch(request: Request, env: Env): Promise<Response> { switch (request.method) {
 		case 'GET': {
-			return new Response(page, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
+			const url = new URL(request.url);
+			if (url.pathname === '/')
+				return new Response(page, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
+			else
+				return new Response(null, { status: 301, headers: { 'location': '/'}});
 		}
 		case 'POST': {
 			// Using the incoming headers, verify this request actually came from discord.
