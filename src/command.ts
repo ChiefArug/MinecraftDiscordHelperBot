@@ -2,16 +2,24 @@ import {
 	type CommandInteraction,
 	type CommandOption,
 	type CommandOptionData,
-	CommandOptions,
+	type CommandOptions,
 	CommandOptionType,
-	Interaction,
+	type Interaction,
 	InteractionContextType,
 } from './discord.ts';
+
 import { AckResponse, InteractionResponse, MessageResponse, PingResponse } from './response.ts';
-import { query } from './waifu.ts';
 import { JIJ, ModId } from './queries.ts';
-import { GameVersion, Loader } from './graphql/graphql.ts';
 import { clampInside } from './lib.ts';
+
+import type { GameVersion, Loader } from './graphql/graphql.ts';
+
+const query: (q: string, variables?: Record<string, string>) => Promise<object | undefined> = await (async () => {
+try {
+	return (await import('./waifu.ts')).query;
+} catch (e) {
+	return () => { throw new Error('Tried to query WAIFU when not running as a worker!');	};
+}})();
 
 export type AckNow = (extra: () => Promise<InteractionResponse>) => InteractionResponse;
 export type OptionGetter<O extends CommandOptions> = (option: string) => CommandOptionData<O> | undefined;

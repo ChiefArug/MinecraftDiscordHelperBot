@@ -27,10 +27,7 @@ const filter = new Set(
 		.filter((s) => s.length > 0)
 		.flatMap((s) => s.split(' ')),
 );
-const commandsToRegister = (filter.size > 0 ? Object.keys(COMMANDS).filter((c) => filter.has(c)) : Object.keys(COMMANDS)).map((k) => ({
-	name: k,
-	...COMMANDS[k as CommandName],
-}));
+const commandsToRegister = (filter.size > 0 ? Object.keys(COMMANDS).filter((c) => filter.has(c)) : Object.keys(COMMANDS)).map((k) => COMMANDS[k as CommandName]);
 console.log(commandsToRegister);
 
 /**
