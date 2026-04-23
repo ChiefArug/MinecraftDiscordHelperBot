@@ -11,8 +11,8 @@ import fs from 'node:fs';
  * to be run once.
  */
 
-const token = fs.readFileSync('.token');
-const applicationId = fs.readFileSync('.appid');
+const token = String(fs.readFileSync('.token')).trim();
+const applicationId = String(fs.readFileSync('.appid')).trim();
 
 if (!token) {
 	throw new Error('The DISCORD_TOKEN environment variable is required.');
