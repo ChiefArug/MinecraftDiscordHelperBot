@@ -1,5 +1,5 @@
 import { InteractionType } from 'discord-interactions';
-import type { CommandName } from './commands.ts';
+import type { CommandName } from '../commands.ts';
 
 export const CommandOptionType = {
 	SUB_COMMAND: 1,

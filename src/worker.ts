@@ -1,10 +1,10 @@
 import { InteractionType, verifyKey } from 'discord-interactions';
-import { Interaction } from './discord.ts';
+import { Interaction } from './lib/discord.ts';
 import { query } from './waifu.ts';
 import { JIJ, ModId } from './queries.ts';
 import { GameVersion, Loader } from './graphql/graphql.ts';
-import { clampInside } from './lib.ts';
-import { MessageResponse, PingResponse } from './response.ts';
+import { clampInside } from './lib/util.ts';
+import { MessageResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts'
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?

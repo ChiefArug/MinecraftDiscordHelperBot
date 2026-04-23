@@ -1,5 +1,10 @@
-import { AnonymousCommand, Command, JijCommand, ModIdCommand, PingCommand, QueryCommand } from './command.ts';
-import { PingResponse } from './response.ts';
+import { Command } from './lib/command.ts';
+import { PingResponse } from './lib/response.ts';
+import { ModIdCommand } from './commands/modIdCommand.ts';
+import { AnonymousCommand } from './commands/anonymousCommand.ts';
+import { JijCommand } from './commands/jijCommand.ts';
+import { QueryCommand } from './commands/queryCommand.ts';
+import { PingCommand } from './commands/pingCommand.ts';
 
 
 /*
