@@ -1,29 +1,31 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
-import { type AckNow, Command, type OptionGetter, type SimpleString } from '../lib/command.ts';
+import { type AckNow, Command, type OptionGetter, BoolArg, type StringArg } from '../lib/command.ts';
 import { query } from '../waifu.ts';
 
 // language=GraphQL
-const ModId = `query ModId($modid: String) {
-	gameVersions {
+const ModId = `query ModId($predicate: StringPredicate) {
+    gameVersions {
         version
         loader
-		mods(where: {modId: {matches: $modid}}, first: 2) {
-			edges {
+        mods(where: {modId: $predicate}, first: 2) {
+            edges {
                 node {
                     curseforgeProjectId
                     modrinthProjectId
 
                     modIds
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 }
 `;
 
-export class ModIdCommand extends Command<SimpleString<'modid'>> {
+type Args = StringArg<'modid'> & BoolArg<'regex'>;
+
+export class ModIdCommand extends Command<Args> {
 	constructor(name: string, description: string) {
 		super(name, description, {
 			modid: {
@@ -33,12 +35,22 @@ export class ModIdCommand extends Command<SimpleString<'modid'>> {
 				min_length: 2,
 				max_length: 64,
 			},
+			regex: {
+				name: 'regex',
+				type: CommandOptionType.BOOLEAN,
+				description: 'If the query should use regex',
+				required: false,
+			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<SimpleString<'modid'>>, ack: AckNow): Promise<InteractionResponse> {
+	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, ack: AckNow): Promise<InteractionResponse> {
+		const regex = getOption('regex', false);
 		const modid = getOption('modid');
 		if (!modid) return new MessageResponse('modid parameter is required!');
-		const result = (await query(ModId, { modid: modid.value })) as { gameVersions: GameVersion[] };
+
+		const predicate = regex ? { matches: modid } : { equals: modid};
+
+		const result = (await query(ModId, { predicate })) as { gameVersions: GameVersion[] };
 		const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {};
 		const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {};
 		for (const gameVersion of result.gameVersions) {

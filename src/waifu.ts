@@ -1,9 +1,9 @@
-export const query: (q: string, variables?: Record<string, string>) => Promise<object | undefined> = await (async () => {
+export const query: (q: string, variables?: Record<string, any>) => Promise<object | undefined> = await (async () => {
 	try {
 		const { env } = await import('cloudflare:workers');
 		const URL = 'https://waifu.neoforged.net/api/graphql';
 
-		return async (q: string, variables: Record<string, string> = {}): Promise<object | undefined> => {
+		return async (q: string, variables: Record<string, any> = {}): Promise<object | undefined> => {
 			const response = await fetch(URL, {
 				method: 'POST',
 				headers: {

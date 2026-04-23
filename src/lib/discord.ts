@@ -46,13 +46,14 @@ export type StringCommandOption = {
 	min_length?: number;
 	max_length?: number;
 }
+export type BooleanCommandOption = { type: typeof CommandOptionType.BOOLEAN; }
 type __commandOption<NAME extends string, T extends CommandOptionType, R extends boolean = false> = {
 	name: NAME;
 	type: T;
 	description: string;
 	required?: R;
 	autocomplete?: boolean;
-} & (NumberCommandOption | StringCommandOption);
+} & (NumberCommandOption | StringCommandOption | BooleanCommandOption);
 export type CommandOptions = Record<string, CommandOptionType>;
 export type CommandOption<O extends CommandOptions, N extends string = keyof O & string> = __commandOption<N, O[N]>;
 
