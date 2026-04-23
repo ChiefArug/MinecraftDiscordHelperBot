@@ -1,7 +1,7 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
-import { AckNow, Command, OptionGetter, SimpleString } from '../lib/command.ts';
+import { type AckNow, Command, type OptionGetter, type SimpleString } from '../lib/command.ts';
 
 export class QueryCommand extends Command<SimpleString<'query'>> {
 	constructor(name: string, description: string) {

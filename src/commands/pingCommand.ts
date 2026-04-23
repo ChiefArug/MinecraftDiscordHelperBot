@@ -1,5 +1,5 @@
 import { InteractionResponse, PingResponse } from '../lib/response.ts';
-import { AckNow, Command, OptionGetter } from '../lib/command.ts';
+import { type AckNow, Command, type OptionGetter } from '../lib/command.ts';
 
 export class PingCommand extends Command<never> {
 	constructor(name: string, description: string) {

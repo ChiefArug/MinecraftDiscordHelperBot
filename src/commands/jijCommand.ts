@@ -3,7 +3,7 @@ import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion } from '../graphql/graphql.ts';
 import { clampInside } from '../lib/util.ts';
-import { AckNow, Command, OptionGetter, SimpleString } from '../lib/command.ts';
+import { type AckNow, Command, type OptionGetter, type SimpleString } from '../lib/command.ts';
 
 // language=GraphQL
 export const JIJ = `query JIJ($term: String) {

@@ -1,7 +1,7 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
-import { AckNow, Command, OptionGetter, SimpleString } from '../lib/command.ts';
+import { type AckNow, Command, type OptionGetter, type SimpleString } from '../lib/command.ts';
 import { query } from '../waifu.ts';
 
 // language=GraphQL
