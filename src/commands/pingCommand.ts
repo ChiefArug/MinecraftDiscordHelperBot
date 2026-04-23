@@ -1,4 +1,4 @@
-import { InteractionResponse, PingResponse } from '../lib/response.ts';
+import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { type AckNow, Command, type OptionGetter } from '../lib/command.ts';
 
 export class PingCommand extends Command<never> {
@@ -7,6 +7,6 @@ export class PingCommand extends Command<never> {
 	}
 
 	executeImpl(_e: Env, _go: OptionGetter<never>, _a: AckNow): Promise<InteractionResponse> {
-		return Promise.resolve(new PingResponse());
+		return Promise.resolve(new MessageResponse('Pong!'));
 	}
 }
