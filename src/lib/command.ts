@@ -11,7 +11,8 @@ import {
 import { AckResponse, InteractionResponse, MessageResponse } from './response.ts';
 
 export type AckNow = (extra: () => Promise<InteractionResponse>) => InteractionResponse;
-export type OptionGetter<O extends CommandOptions> = (option: string) => CommandOptionData<O> | undefined;
+export type OptionKey<O extends CommandOptions> = keyof O & string;
+export type OptionGetter<O extends CommandOptions> = (option: OptionKey<O>) => CommandOptionData<O> | undefined;
 export type SimpleString<K extends string> = { [k in K]: typeof CommandOptionType.STRING };
 
 /**
@@ -58,7 +59,7 @@ export abstract class Command<O extends CommandOptions> {
 		iAmASuperClassThatIsDynamicallyPassingOptions;
 	}
 
-	private getOption(int: CommandInteraction<O>, name: keyof O & string): CommandOptionData<O> | undefined {
+	private getOption(int: CommandInteraction<O>, name: OptionKey<O>): CommandOptionData<O> | undefined {
 		const optionData = int.data.options.find((o) => o.name === name);
 		if (optionData) return optionData;
 		const option = this.options.find((o) => o.name === name);
@@ -102,7 +103,7 @@ export abstract class Command<O extends CommandOptions> {
 	execute(int: CommandInteraction<O>, env: Env): Promise<InteractionResponse> {
 		return this.executeImpl(
 			env,
-			(option: string) => this.getOption(int, option),
+			(option: OptionKey<O>) => this.getOption(int, option),
 			(extra: () => Promise<InteractionResponse>) => {
 				this.respondEventually(extra(), int);
 				return new AckResponse();
