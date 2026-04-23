@@ -1,29 +1,14 @@
 import { InteractionType, verifyKey } from 'discord-interactions';
 import { Interaction } from './discord.ts';
 import { query } from './waifu.ts';
-import { JIJ, MixinExtrasForgeOnNeoForge, ModId } from './queries.ts';
+import { JIJ, ModId } from './queries.ts';
 import { GameVersion, Loader } from './graphql/graphql.ts';
 import { clampInside } from './lib.ts';
 import { MessageResponse, PingResponse } from './response.ts';
-import { env } from 'cloudflare:workers';
+import Page from './index.ts'
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
 // TODO: Respond initially with a defer or message then send a response later on to avoid the 3 second limit which has started to be hit
-
-const page = `<!DOCTYPE html>
-<head>
-	<title>ChiefArug's WAIFU Helper</title>
-	<meta name="twitter:title" content="ChiefArug's Minecraft Modding Crash Helper Bot">
-	<meta name="twitter:description" content="A helper Discord bot for querying NeoForged's WAIFU database">
-	<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='0' y='0' width='64' height='64' fill='rgb(216, 130, 49)'/%3E%3C/svg%3E%0A"/>
-	<meta name="darkreader-lock">
-</head>
-<body style="background-color:rgb(34, 36, 39); text-align: center;color: rgb(231, 217, 211); font-family: 'Noto Sans', 'Open Sans', Helvetica, Arial, sans-serif; margin: 30px">
-	<h1>ChiefArug's Minecraft Modding Crash Helper Bot</h1>
-	<p style="margin: 40px">A helper bot for querying NeoForged's WAIFU database</p>
-	<a href="https://discord.com/oauth2/authorize?client_id=${env.DISCORD_APPLICATION_ID}" target="_blank" rel="noopener noreferrer" style="padding: 10px 20px; margin: 8px 4px; background-color: rgb(216, 130, 49); border-radius: 4px; text-decoration: none; color: rgb(231, 217, 211); text-shadow: black 0 0 2px; font-size: 16px; font-weight: 700">Install</a>
-</body>
-`;
 
 export default {
 	/**
@@ -37,7 +22,7 @@ export default {
 		case 'GET': {
 			const url = new URL(request.url);
 			if (url.pathname === '/')
-				return new Response(page, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
+				return new Response(Page, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
 			else
 				return new Response(null, { status: 301, headers: { 'location': '/'}});
 		}
