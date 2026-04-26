@@ -1,22 +1,19 @@
-import {
-	type CommandInteraction,
-	type CommandOption,
-	type CommandOptions,
-	CommandOptionType,
-	CommandOptionTypeT,
-	type Interaction,
-	InteractionContextType,
-} from './discord.ts';
+import { type CommandInteraction, type CommandOption, type CommandOptions, CommandOptionType, type CommandOptionTypeT, type Interaction, InteractionContextType } from './discord.ts';
 
 import { AckResponse, InteractionResponse, MessageResponse } from './response.ts';
 
 export type AckNow = (extra: () => Promise<InteractionResponse>) => InteractionResponse;
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
-export type OptionGetter<O extends CommandOptions> = (<K extends OptionKey<O>, D extends CommandOptionTypeT[O[K]] | undefined>(
+type __defaultedOptionGetter<O extends CommandOptions> = <K extends OptionKey<O>, D extends CommandOptionTypeT[O[K]] | undefined>(
 	option: K,
 	defaultValue: D,
-) => CommandOptionTypeT[O[K]] | D);
+) => CommandOptionTypeT[O[K]] | D;
+type __nullableOptionGetter<O extends CommandOptions> = <K extends OptionKey<O>>(
+	option: K,
+) => CommandOptionTypeT[O[K]] | undefined
+
+export type OptionGetter<O extends CommandOptions> = __defaultedOptionGetter<O> & __nullableOptionGetter<O>;
 
 export type StringArg<K extends string> = { [k in K]: typeof CommandOptionType.STRING };
 export type BoolArg<K extends string> = { [k in K]: typeof CommandOptionType.BOOLEAN };
@@ -28,6 +25,7 @@ export abstract class Command<O extends CommandOptions> {
 	readonly name: string;
 	readonly description: string;
 	readonly contexts: InteractionContextType[];
+	//TODO: replace CommandOption type with a class that maps name -> property and overrides toJSON() to provide the list form for discord
 	readonly options: CommandOption<O>[];
 
 	protected static readonly ALL_INTERACTIONS = [
@@ -65,19 +63,6 @@ export abstract class Command<O extends CommandOptions> {
 		iAmASuperClassThatIsDynamicallyPassingOptions;
 	}
 
-	private getOption<K extends OptionKey<O>, D extends CommandOptionTypeT[O[K]] | undefined>(
-		int: CommandInteraction<O>,
-		name: K,
-		defaultValue: D,
-	): CommandOptionTypeT[O[K]] | D {
-		const optionData = int.data.options.find((o) => o.name === name);
-		if (optionData) return optionData.value;
-		const option = this.options.find((o) => o.name === name);
-		// programmer error, should never happen tho due to the typing system
-		if (!option) throw new Error(`Option ${name} does not exist in command ${name}!`);
-		return defaultValue;
-	}
-
 	private respondEventually(response: Promise<InteractionResponse>, int: Interaction): void {
 		const url = new URL(`https://discord.com/api/v10/interactions/${int.id}/${int.token}/callback`);
 		response.then(
@@ -111,14 +96,31 @@ export abstract class Command<O extends CommandOptions> {
 	 * @param env Environment variables
 	 */
 	execute(int: CommandInteraction<O>, env: Env): Promise<InteractionResponse> {
-		return this.executeImpl(
-			env,
-			<K extends OptionKey<O>, D extends CommandOptionTypeT[O[K]] | undefined>(option: K, defaultValue: D) =>
-				this.getOption(int, option, defaultValue),
-			(extra: () => Promise<InteractionResponse>) => {
-				this.respondEventually(extra(), int);
-				return new AckResponse();
-			},
-		);
+		const optionGetter: OptionGetter<O> = getOptionGetter(this.options, int);
+
+		return this.executeImpl(env, optionGetter, (extra: () => Promise<InteractionResponse>) => {
+			this.respondEventually(extra(), int);
+			return new AckResponse();
+		});
 	}
+}
+
+type OptionType<O extends CommandOptions, K extends OptionKey<O>> = CommandOptionTypeT[O[K]]
+
+function getOptionGetter<O extends CommandOptions>(options: CommandOption<O>[], int: CommandInteraction<O>): OptionGetter<O> {
+
+	function getOption<K extends OptionKey<O>, D extends OptionType<O, K> | undefined>(name: K, def?: D): OptionType<O, K> | D;
+	function getOption<K extends OptionKey<O>, D extends OptionType<O, K> | undefined>(name: K, def?: D): OptionType<O, K> | D | undefined {
+		const optionData = int.data.options.find((o) => o.name === name);
+
+		if (optionData) return optionData.value;
+		const option = options.find((o) => o.name === name);
+
+		// programmer error, should never happen tho due to the typing system
+		if (!option) throw new Error(`Option ${name} does not exist in command ${name}!`);
+
+		return def;
+	}
+
+	return getOption;
 }
