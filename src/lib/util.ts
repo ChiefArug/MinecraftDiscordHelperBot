@@ -15,3 +15,7 @@ export const clampInside = (pre: string, post: string, content: string, length: 
 		return pre + content.substring(0, length - (extra + 3)) + '...' + post;
 	}
 };
+
+export const sleep = (ms: number): Promise<void> => {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}

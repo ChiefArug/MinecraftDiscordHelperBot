@@ -1,8 +1,6 @@
-import { type CommandInteraction, type CommandOption, type CommandOptions, CommandOptionType, type CommandOptionTypeT, type Interaction, InteractionContextType } from './discord.ts';
+import { type CommandInteraction, type CommandOption, type CommandOptions, CommandOptionType, type CommandOptionTypeT, InteractionContextType } from './discord.ts';
 
 import { AckResponse, InteractionResponse, MessageResponse } from './response.ts';
-
-export type AckNow = (extra: () => Promise<InteractionResponse>) => InteractionResponse;
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
 type __defaultedOptionGetter<O extends CommandOptions> = <K extends OptionKey<O>, D extends CommandOptionTypeT[O[K]] | undefined>(
@@ -63,45 +61,57 @@ export abstract class Command<O extends CommandOptions> {
 		iAmASuperClassThatIsDynamicallyPassingOptions;
 	}
 
-	private respondEventually(response: Promise<InteractionResponse>, int: Interaction): void {
-		const url = new URL(`https://discord.com/api/v10/interactions/${int.id}/${int.token}/callback`);
-		response.then(
-			(res) => fetch(res.request(url)),
-			(err) => {
-				console.error(`Error responding to request ${int.id}: ${err}`);
-				return fetch(new MessageResponse(`An error occurred executing that. Id for logging: ${int.id}`).request(url));
-			},
-		);
-	}
-
 	/**
 	 * Handle this command being executed.
 	 * @param env Environment Variables
 	 * @param getOption Helper function to get an option
-	 * @param ack Helper function to immediately respond with an ack and then send a proper response later
 	 * @example
 	 * return new MessageResponse("Pong!");
-	 * @example
-	 * return ack(async () => {
-	 *   const result = await someFunctionThatTakesALongTime(interaction.thing);
-	 *   return new MessageResponse(result + " = 42");
-	 * };
 	 * @protected
 	 */
-	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>, ack: AckNow): Promise<InteractionResponse>;
+	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>): Promise<InteractionResponse>;
 
 	/**
 	 * Execute this command from the provided interaction information and environment variables
 	 * @param int The interaction parsed from Discord
 	 * @param env Environment variables
+	 * @param ctx Context of the request
 	 */
-	execute(int: CommandInteraction<O>, env: Env): Promise<InteractionResponse> {
+	execute(int: CommandInteraction<O>, env: Env, ctx: ExecutionContext<any>): Promise<InteractionResponse> {
 		const optionGetter: OptionGetter<O> = getOptionGetter(this.options, int);
 
-		return this.executeImpl(env, optionGetter, (extra: () => Promise<InteractionResponse>) => {
-			this.respondEventually(extra(), int);
-			return new AckResponse();
-		});
+		const base = `https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${int.token}`;
+		// this block executes the command, then tries to gracefully deal with any errors.
+		// it is not awaited, instead it is passed to CF to finish after the response is returned, and will time out after 30s.
+		ctx.waitUntil(this.executeImpl(env, optionGetter)
+			// first stage, basic response. both success and errors edit the original message
+			.then((response) => {
+				return fetch(response.request(new URL(base + '/messages/@original'), 'PATCH'));
+			}, (err) => {
+				console.error(`Error responding to request ${int.id}: ${err}, ${err.stack}`);
+				return fetch(
+					new MessageResponse(`An error occurred executing that. Id for logging: ${int.id}`).request(
+						new URL(base + '/messages/@original'),
+						'PATCH',
+					),
+				);
+			})
+			// second stage, more error handling. will send a new message rather than try edit the original response
+			.then((res) => {
+				if (res.status !== 200) {
+					return Promise.all([
+						res.text().then(txt => console.error(`Failed to respond to ${int.id}: ${res.status}, ${txt}`)),
+						fetch(new MessageResponse(`An error occurred responding to that request :(. Id for logging: ${int.id}`)
+								.request(new URL(base), 'POST'),
+						)]);
+				}
+			}).catch((err) => {
+				console.error(`Really failed to respond to request! ${int.id}, ${err}, ${err.stack}`);
+			})
+		);
+
+		//immediately return an ack response
+		return Promise.resolve(new AckResponse());
 	}
 }
 

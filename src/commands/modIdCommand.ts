@@ -1,7 +1,7 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
-import { type AckNow, Command, type OptionGetter, BoolArg, type StringArg } from '../lib/command.ts';
+import { Command, type OptionGetter, type BoolArg, type StringArg } from '../lib/command.ts';
 import { query } from '../waifu.ts';
 
 // language=GraphQL
@@ -9,7 +9,7 @@ const ModId = `query ModId($predicate: StringPredicate) {
     gameVersions {
         version
         loader
-        mods(where: {modId: $predicate}, first: 2) {
+        mods(where: {modId: $predicate}, first: 5) {
             edges {
                 node {
                     curseforgeProjectId
@@ -34,6 +34,7 @@ export class ModIdCommand extends Command<Args> {
 				description: 'Mod ID to search for',
 				min_length: 2,
 				max_length: 64,
+				required: true,
 			},
 			regex: {
 				name: 'regex',
@@ -43,16 +44,18 @@ export class ModIdCommand extends Command<Args> {
 			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, ack: AckNow): Promise<InteractionResponse> {
+	protected async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<InteractionResponse> {
+		console.log('ah')
 		const regex = getOption('regex', false);
 		const modid = getOption('modid');
 		if (!modid) return new MessageResponse('modid parameter is required!');
-
-		const predicate = regex ? { matches: modid } : { equals: modid};
+		console.log('bh');
+		const predicate = regex ? { matches: modid } : { equals: modid };
 
 		const result = (await query(ModId, { predicate })) as { gameVersions: GameVersion[] };
 		const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {};
 		const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {};
+		console.log('ch');
 		for (const gameVersion of result.gameVersions) {
 			const { loader, version } = gameVersion;
 			for (const { node } of gameVersion.mods.edges) {
@@ -63,6 +66,7 @@ export class ModIdCommand extends Command<Args> {
 				if (mr) (mrMods[mr] ??= []).push(`[${modids}] ${loader} ${version}`);
 			}
 		}
+		console.log('dh');
 		if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
 			return new MessageResponse(`No mods found with modid ${modid}`);
 
@@ -73,8 +77,10 @@ export class ModIdCommand extends Command<Args> {
 				})
 				.join('\n');
 		};
+		console.log('eh');
 		return new MessageResponse(
 			`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
 		);
 	}
+
 }

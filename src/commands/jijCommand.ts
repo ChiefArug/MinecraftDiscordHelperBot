@@ -3,7 +3,7 @@ import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion } from '../graphql/graphql.ts';
 import { clampInside } from '../lib/util.ts';
-import { type AckNow, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 
 // language=GraphQL
 export const JIJ = `query JIJ($term: String) {
@@ -39,7 +39,7 @@ export class JijCommand extends Command<StringArg<'query'>> {
 			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<StringArg<'query'>>, ack: AckNow): Promise<InteractionResponse> {
+	protected async executeImpl(env: Env, getOption: OptionGetter<StringArg<'query'>>): Promise<InteractionResponse> {
 		const queryTerm = getOption('query');
 		if (!queryTerm) return new MessageResponse('query parameter is required!');
 		const result = (await query(JIJ, { term: queryTerm })) as { gameVersions: GameVersion[] };

@@ -1,7 +1,7 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
-import { type AckNow, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 
 export class QueryCommand extends Command<StringArg<'query'>> {
 	constructor(name: string, description: string) {
@@ -16,7 +16,7 @@ export class QueryCommand extends Command<StringArg<'query'>> {
 		});
 	}
 
-	protected async executeImpl(_e: Env, getOption: OptionGetter<StringArg<'query'>>, _a: AckNow): Promise<InteractionResponse> {
+	protected async executeImpl(_e: Env, getOption: OptionGetter<StringArg<'query'>>): Promise<InteractionResponse> {
 		const q = getOption('query');
 		if (!q) return new MessageResponse('Query was null!');
 		const queryResult = await query(q);
