@@ -48,7 +48,6 @@ export default {
 					case InteractionType.APPLICATION_COMMAND: {
 						const { name } = message.data;
 						const command = COMMANDS[name];
-						console.log(command);
 
 						if (command) {
 							return (await command.execute(message, env, ctx)).response();
