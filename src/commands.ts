@@ -6,6 +6,7 @@ import { JijCommand } from './commands/jijCommand.ts';
 import { QueryCommand } from './commands/queryCommand.ts';
 import { PingCommand } from './commands/pingCommand.ts';
 import { sleep } from './lib/util.ts';
+import { ClassCommand } from './commands/classCommand.ts';
 
 
 /*
@@ -25,6 +26,7 @@ const __commands = {
 	modid: new ModIdCommand('modid', 'Look up information about a particular Mod ID'),
 	query: new QueryCommand('query', 'Run the query passed in as a string'),
 	jij: new JijCommand('jij', 'Search for a mod or library being jar-in-jarred'),
+	class: new ClassCommand('class', 'Search for mods containing a particular class')
 } as Record<string, Command<any>>;
 
 export declare type CommandName = keyof typeof __commands;

@@ -13,7 +13,7 @@ import fs from 'node:fs';
  * Pass any args to update prod instead of local
  */
 
-const prod = process.argv.length > 2;
+const prod = process.argv.length > 2 && !!process.argv[2];
 
 const token = String(fs.readFileSync(prod ? '.prod_token' : '.token')).trim();
 const applicationId = String(fs.readFileSync(prod ? '.prod_appid' : '.appid')).trim();
