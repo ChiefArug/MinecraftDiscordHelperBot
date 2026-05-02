@@ -1,16 +1,16 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
-import type { GameVersion } from '../graphql/graphql.ts';
+import type { GameVersion, Loader, NestedArtifact } from '../graphql/graphql.ts';
 import { clampInside } from '../lib/util.ts';
-import { Command, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 
 // language=GraphQL
-export const JIJ = `query JIJ($term: String) {
+export const JIJ = `query JIJ($predicate: StringPredicate) {
 	gameVersions {
 		version
 		loader
-		mods(where: {anyNestedArtifact: {id: {matches: $term}}} first: 10) {
+		mods(where: {anyNestedArtifact: {id: $predicate}} first: 10) {
 			count
 			edges {
 				node {
@@ -27,22 +27,66 @@ export const JIJ = `query JIJ($term: String) {
 	}
 }`;
 
-export class JijCommand extends Command<StringArg<'query'>> {
+export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>> {
 	constructor(name: string, description: string) {
 		super(name, description, {
-			query: {
-				name: 'query',
+			locator: {
+				name: 'locator',
 				type: CommandOptionType.STRING,
-				description: 'A substring of what you want to search for, ie mixinextras-neoforge',
-				min_length: 3,
+				description: 'A substring of the (maven) location you want to search for, ie mixinextras-neoforge',
+				min_length: 4,
 				max_length: 64,
+			},
+			regex: {
+				name: 'regex',
+				type: CommandOptionType.BOOLEAN,
+				description: 'If the locator should use full regex'
 			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<StringArg<'query'>>): Promise<InteractionResponse> {
-		const queryTerm = getOption('query');
-		if (!queryTerm) return new MessageResponse('query parameter is required!');
-		const result = (await query(JIJ, { term: queryTerm })) as { gameVersions: GameVersion[] };
-		return new MessageResponse(clampInside('```json\n', '```', JSON.stringify(result, null, 1), 2000));
+
+	protected override async executeImpl(env: Env, getOption: OptionGetter<StringArg<'locator'> & BoolArg<'regex'>>): Promise<InteractionResponse> {
+		const locator = getOption('locator');
+		if (!locator) return new MessageResponse('locator parameter is required!');
+
+		const regex = getOption('regex', false);
+		// The method works both locally and on workers, it's just not recognised.
+		// @ts-expect-error
+		const pattern = regex ? locator : RegExp.escape(locator);
+		const result = (await query(JIJ, { predicate: { matches: pattern } })) as {
+			gameVersions: GameVersion[];
+		};
+
+		const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {};
+		const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {};
+		for (const gameVersion of result.gameVersions) {
+			const { loader, version } = gameVersion;
+			for (const { node } of gameVersion.mods.edges) {
+				const cf = node.curseforgeProjectId;
+				const mr = node.modrinthProjectId;
+				let nestedArtifactsFlat = node.nestedArtifactsFlat as NestedArtifact[];
+				const jijed = nestedArtifactsFlat?.length ?? -1
+				const modids = node.modIds as string[];
+				const matchingJij = nestedArtifactsFlat.filter(na => na.id.match(pattern)).map(na => `\`${na.id}\` (${na.version})`).join(",");
+				const modidsDisplay = modids.map(m => `\`${m}\``).join(",");
+				if (cf) (cfMods[cf] ??= []).push(`[${modidsDisplay}] ${loader} ${version} has ${jijed} jar(s) inside. Matched: ${matchingJij}`);
+				if (mr) (mrMods[mr] ??= []).push(`[${modidsDisplay}] ${loader} ${version} has ${jijed} jar(s) inside. Matched: ${matchingJij}`);
+			}
+		}
+
+		if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
+			return new MessageResponse(`No mods found containing a jij matching ${locator}`);
+
+		const wrap = <T extends string | number>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
+			return Object.entries(values)
+				.map(([id, versionString]) => {
+					return `${prefix}${id} ${versionString}`;
+				})
+				.join('\n');
+		};
+
+		return new MessageResponse(
+			`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
+		);
 	}
 }
