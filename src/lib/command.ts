@@ -17,7 +17,10 @@ export type StringArg<K extends string> = { [k in K]: typeof CommandOptionType.S
 export type BoolArg<K extends string> = { [k in K]: typeof CommandOptionType.BOOLEAN };
 
 /**
- * A class representing a Discord command
+ * A class representing a Discord command.
+ * @typeParam O Map of string keys to command types that this command accepts. Makes {@link getOption} and the command constructor completely typesafe.
+ * @example
+ * class ExampleCommand extends Command<StringArg<'name'> & BoolArg<'refresh'>> { ... }
  */
 export abstract class Command<O extends CommandOptions> {
 	readonly name: string;
@@ -32,18 +35,38 @@ export abstract class Command<O extends CommandOptions> {
 		InteractionContextType.PRIVATE_CHANNEL,
 	];
 
-	protected constructor(name: string, description: [O] extends [never] ? string : never, options?: Record<string, never>);
+	/**
+	 * @param name Command name.
+	 * @param description Description of the command. If type is `never` then you must specify some options using another constructor.
+	 * @protected
+	 */
+	protected constructor(name: string, description: [O] extends [never] ? string : never);
+	/**
+	 * @param name Command name.
+	 * @param description Description of the command.
+	 * @param options Options of the command. These must also be specified in the command's generics.
+	 * @param contexts Optional list of {@link InteractionContextType InterationContextTypes} to use.
+	 * @protected
+	 */
 	protected constructor(
 		name: string,
 		description: string,
 		options: { [K in keyof O & string]: CommandOption<O, K> },
 		contexts?: InteractionContextType[],
 	);
+	/**
+	 * @param name Command name.
+	 * @param description Description of the command.
+	 * @param options Options of the command. These must also be specified in the command's generics.
+	 * @param contexts List of contexts that the command can be used in.
+	 * @param iAmASuperClassThatIsDynamicallyPassingOptions <code>true</code> if this is a superclass that accepts parameters dynamically. Note this cannot be <code>false</code>. Please don't use this constructor unless you are a superclass that needs to dynamically pass options.
+	 * @protected
+	 */
 	protected constructor(
 		name: string,
 		description: string,
 		options: { [K in keyof O & string]: CommandOption<O, K> } | undefined,
-		contexts: InteractionContextType[] | undefined,
+		contexts: InteractionContextType[],
 		iAmASuperClassThatIsDynamicallyPassingOptions: true,
 	);
 	protected constructor(
