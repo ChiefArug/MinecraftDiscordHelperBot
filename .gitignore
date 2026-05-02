@@ -169,3 +169,5 @@ dist
 # token files
 .token
 .appid
+.prod_token
+.prod_appid

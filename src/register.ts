@@ -9,10 +9,14 @@ import fs from 'node:fs';
  * This file is meant to be run from the command line, and is not used by the
  * application server. It's allowed to use node.js primitives, and only needs
  * to be run once.
+ *
+ * Pass any args to update prod instead of local
  */
 
-const token = String(fs.readFileSync('.token')).trim();
-const applicationId = String(fs.readFileSync('.appid')).trim();
+const prod = process.argv.length > 2;
+
+const token = String(fs.readFileSync(prod ? '.prod_token' : '.token')).trim();
+const applicationId = String(fs.readFileSync(prod ? '.prod_appid' : '.appid')).trim();
 
 if (!token) {
 	throw new Error('The DISCORD_TOKEN environment variable is required.');
@@ -21,13 +25,7 @@ if (!applicationId) {
 	throw new Error('The DISCORD_APPLICATION_ID environment variable is required.');
 }
 
-const filter = new Set(
-	process.argv
-		.slice(2)
-		.filter((s) => s.length > 0)
-		.flatMap((s) => s.split(' ')),
-);
-const commandsToRegister = (filter.size > 0 ? Object.keys(COMMANDS).filter((c) => filter.has(c)) : Object.keys(COMMANDS)).map((k) => COMMANDS[k as CommandName]);
+const commandsToRegister = Object.keys(COMMANDS).map((k) => COMMANDS[k as CommandName]);
 console.log(commandsToRegister);
 
 /**
