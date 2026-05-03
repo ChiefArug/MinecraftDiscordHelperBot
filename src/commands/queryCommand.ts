@@ -12,6 +12,7 @@ export class QueryCommand extends Command<StringArg<'query'>> {
 				description: 'The query to execute',
 				min_length: 20,
 				max_length: 2000,
+				required: true,
 			},
 		});
 	}

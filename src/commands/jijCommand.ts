@@ -2,7 +2,6 @@ import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion, Loader, NestedArtifact } from '../graphql/graphql.ts';
-import { clampInside } from '../lib/util.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 
 // language=GraphQL
@@ -36,6 +35,7 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 				description: 'A substring of the (maven) location you want to search for, ie mixinextras-neoforge',
 				min_length: 4,
 				max_length: 64,
+				required: true,
 			},
 			regex: {
 				name: 'regex',

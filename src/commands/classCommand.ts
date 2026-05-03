@@ -34,6 +34,7 @@ export class ClassCommand extends Command<StringArg<'class'> & BoolArg<'regex'>>
 				description: 'The classname to search for, in JVM format (ie java/lang/Character$Subset)',
 				min_length: 4,
 				max_length: 64,
+				required: true,
 			},
 			regex: {
 				name: 'regex',
