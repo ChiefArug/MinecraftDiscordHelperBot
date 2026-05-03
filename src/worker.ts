@@ -5,7 +5,6 @@ import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
-// TODO: Respond initially with a defer or message then send a response later on to avoid the 3 second limit which has started to be hit
 
 export default {
 	/**
