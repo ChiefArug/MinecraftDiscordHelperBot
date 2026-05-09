@@ -1,8 +1,9 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
-import { Command, type OptionGetter, type BoolArg, type StringArg } from '../lib/command.ts';
+import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 import { query } from '../waifu.ts';
+import { modInfos } from '../modrinth.ts';
 
 // language=GraphQL
 const ModId = `query ModId($predicate: StringPredicate) {
@@ -45,7 +46,6 @@ export class ModIdCommand extends Command<Args> {
 		});
 	}
 	protected async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<InteractionResponse> {
-
 		const regex = getOption('regex', false);
 		const modid = getOption('modid');
 		if (!modid) return new MessageResponse('modid parameter is required!');
@@ -78,8 +78,14 @@ export class ModIdCommand extends Command<Args> {
 				.join('\n');
 		};
 
+		let modrinthInfos = Object.keys(mrMods).length
+			? await modInfos(Object.keys(mrMods)).then((a) =>
+					a.map((p) => `[${p.title}](<https://modrinth.com/${p.project_type}/${p.id}>)`).join(', '),
+				)
+			: '';
+
 		return new MessageResponse(
-			`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
+			`Mods found: \nModrinth: ${modrinthInfos}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
 		);
 	}
 
