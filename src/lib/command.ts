@@ -66,7 +66,7 @@ export abstract class Command<O extends CommandOptions> {
 		name: string,
 		description: string,
 		options: { [K in keyof O & string]: CommandOption<O, K> } | undefined,
-		contexts: InteractionContextType[],
+		contexts: InteractionContextType[] | undefined,
 		iAmASuperClassThatIsDynamicallyPassingOptions: true,
 	);
 	protected constructor(

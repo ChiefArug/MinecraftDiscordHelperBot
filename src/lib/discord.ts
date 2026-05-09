@@ -120,3 +120,139 @@ export type ModalInteraction = {
 	};
 } & BaseInteraction;
 export type Interaction = PingInteraction | CommandInteraction<any> | ModalInteraction;
+
+export const ComponentType = {
+	ACTION_ROW: 1,
+	BUTTON: 2,
+	STRING_SELECT: 3,
+	TEXT_INPUT: 4,
+	USER_SELECT: 5,
+	ROLE_SELECT: 6,
+	MENTIONABLE_SELECT: 7,
+	CHANNEL_SELECT: 8,
+	SECTION: 9,
+	TEXT_DISPLAY: 10,
+	THUMBNAIL: 11,
+	MEDIA_GALLERY: 12,
+	FILE: 13,
+	SEPARATOR: 14,
+	// 15
+	// 16
+	CONTAINER: 17,
+	LABEL: 18,
+	FILE_UPLOAD: 19,
+	RADIO_GROUP: 20,
+	CHECKBOX_GROUP: 21,
+	CHECKBOX: 22,
+} as const;
+export type ComponentType = (typeof ComponentType)[keyof typeof ComponentType];
+
+type BaseComponent = {
+	type: ComponentType,
+	id?: number,
+}
+
+export type ActionRowComponent = BaseComponent & {
+	type: typeof ComponentType.ACTION_ROW;
+	components:
+		| [
+				| ButtonComponent
+				| StringSelectComponent
+				| UserSelectComponent
+				| RoleSelectComponent
+				| MentionableSelectComponent
+				| ChannelSelectComponent,
+		  ]
+		| [ButtonComponent, ButtonComponent]
+		| [ButtonComponent, ButtonComponent, ButtonComponent]
+		| [ButtonComponent, ButtonComponent, ButtonComponent, ButtonComponent]
+		| [ButtonComponent, ButtonComponent, ButtonComponent, ButtonComponent, ButtonComponent];
+};
+export const ButtonStyle = {
+	PRIMARY: 1,
+	SECONDARY: 2,
+	SUCCESS: 3,
+	DANGER: 4,
+	LINK: 5,
+} as const;
+export type ButtonStyle = (typeof CommandOptionType)[keyof typeof CommandOptionType];
+export type PartialEmoji = {
+	name: string;
+	id: string;
+	animated?: boolean;
+}
+export type ButtonComponent = BaseComponent & {
+	type: typeof ComponentType.BUTTON;
+	label?: string;
+	emoji?: PartialEmoji;
+	disabled?: boolean;
+} & (
+		| {
+				style: Exclude<ButtonStyle, typeof ButtonStyle.LINK>;
+				custom_id: string;
+		  }
+		| {
+				style: typeof ButtonStyle.LINK;
+				url: string;
+		  }
+	);
+export type StringSelectComponent = never;
+export type UserSelectComponent = never;
+export type RoleSelectComponent = never;
+export type MentionableSelectComponent = never;
+export type ChannelSelectComponent = never;
+
+type SectionChildComponents = TextComponent;
+type SectionAccessoryComponents = ButtonComponent | ThumbnailComponent;
+export type SectionComponent = BaseComponent & {
+	type: typeof ComponentType.SECTION;
+	components:
+		| [SectionChildComponents]
+		| [SectionChildComponents, SectionChildComponents]
+		| [SectionChildComponents, SectionChildComponents, SectionChildComponents];
+	accessory: SectionAccessoryComponents;
+};
+
+export type TextComponent = BaseComponent & {
+	type: typeof ComponentType.TEXT_DISPLAY;
+	content: string;
+};
+export type UnfurledMedia = {
+	url: string;
+}
+export type ThumbnailComponent = BaseComponent & {
+	type: typeof ComponentType.THUMBNAIL;
+	media: UnfurledMedia;
+	description?: string;
+	spoiler?: boolean;
+};
+
+export type SeparatorComponent = BaseComponent & {
+	type: typeof ComponentType.SEPARATOR;
+	divider?: boolean;
+	spacing?: 1 | 2;
+}
+export type FileComponent = never;
+export type MediaGalleryComponent = never;
+type ContainerChildComponent = ActionRowComponent | TextComponent | SectionComponent | MediaGalleryComponent | SeparatorComponent | FileComponent;
+export type ContainerComponent = BaseComponent & {
+	type: typeof ComponentType.CONTAINER;
+	components: ContainerChildComponent[];
+	accent_color?: number;
+	spoiler?: boolean;
+}
+//TODO: maybe make these into classes so they are easier to use
+export type Component = ActionRowComponent
+	| ButtonComponent
+	| StringSelectComponent
+	| UserSelectComponent
+	| RoleSelectComponent
+	| MentionableSelectComponent
+	| ChannelSelectComponent
+	| SectionComponent
+	| TextComponent
+	| ThumbnailComponent
+	| SeparatorComponent
+  | FileComponent
+  | MediaGalleryComponent
+  | ContainerComponent;

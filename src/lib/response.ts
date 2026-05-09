@@ -1,4 +1,5 @@
 import { InteractionResponseType } from 'discord-interactions';
+import { Component } from './discord.ts';
 
 export abstract class InteractionResponse {
 	body: { type: InteractionResponseType; data?: object };
@@ -37,6 +38,18 @@ export class MessageResponse extends InteractionResponse {
 				},
 			}
 		);
+	}
+}
+
+export class ComponentResponse extends InteractionResponse {
+	constructor(components: Component[]) {
+		super({
+			type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+			data: {
+				flags: 1 << 15,
+				components: components,
+			},
+		});
 	}
 }
 
