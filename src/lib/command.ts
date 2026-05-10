@@ -15,6 +15,7 @@ export type OptionGetter<O extends CommandOptions> = __defaultedOptionGetter<O> 
 
 export type StringArg<K extends string> = { [k in K]: typeof CommandOptionType.STRING };
 export type BoolArg<K extends string> = { [k in K]: typeof CommandOptionType.BOOLEAN };
+export type SelectionArg<K extends readonly string[]> = { [k in keyof K]: typeof CommandOptionType.STRING };
 
 /**
  * A class representing a Discord command.

@@ -3,6 +3,7 @@ import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion, Loader, NestedArtifact } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { regexEscape } from '../lib/util.ts';
 
 // language=GraphQL
 export const JIJ = `query JIJ($predicate: StringPredicate) {
@@ -51,8 +52,7 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 
 		const regex = getOption('regex', false);
 		// The method works both locally and on workers, it's just not recognised.
-		// @ts-expect-error
-		const pattern = regex ? locator : RegExp.escape(locator);
+		const pattern = regex ? locator : regexEscape(locator);
 		const result = (await query(JIJ, { predicate: { matches: pattern } })) as {
 			gameVersions: GameVersion[];
 		};

@@ -1,5 +1,5 @@
 import { InteractionResponseType } from 'discord-interactions';
-import { Component } from './discord.ts';
+import { Component } from './component.ts';
 
 export abstract class InteractionResponse {
 	body: { type: InteractionResponseType; data?: object };

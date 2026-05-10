@@ -45,6 +45,7 @@ export type StringCommandOption = {
 	type: typeof CommandOptionType.STRING;
 	min_length?: number;
 	max_length?: number;
+	options?: string[]
 }
 export type BooleanCommandOption = { type: typeof CommandOptionType.BOOLEAN; }
 type __commandOption<NAME extends string, T extends CommandOptionType> = {
@@ -147,27 +148,6 @@ export const ComponentType = {
 } as const;
 export type ComponentType = (typeof ComponentType)[keyof typeof ComponentType];
 
-type BaseComponent = {
-	type: ComponentType,
-	id?: number,
-}
-
-export type ActionRowComponent = BaseComponent & {
-	type: typeof ComponentType.ACTION_ROW;
-	components:
-		| [
-				| ButtonComponent
-				| StringSelectComponent
-				| UserSelectComponent
-				| RoleSelectComponent
-				| MentionableSelectComponent
-				| ChannelSelectComponent,
-		  ]
-		| [ButtonComponent, ButtonComponent]
-		| [ButtonComponent, ButtonComponent, ButtonComponent]
-		| [ButtonComponent, ButtonComponent, ButtonComponent, ButtonComponent]
-		| [ButtonComponent, ButtonComponent, ButtonComponent, ButtonComponent, ButtonComponent];
-};
 export const ButtonStyle = {
 	PRIMARY: 1,
 	SECONDARY: 2,
@@ -181,78 +161,7 @@ export type PartialEmoji = {
 	id: string;
 	animated?: boolean;
 }
-export type ButtonComponent = BaseComponent & {
-	type: typeof ComponentType.BUTTON;
-	label?: string;
-	emoji?: PartialEmoji;
-	disabled?: boolean;
-} & (
-		| {
-				style: Exclude<ButtonStyle, typeof ButtonStyle.LINK>;
-				custom_id: string;
-		  }
-		| {
-				style: typeof ButtonStyle.LINK;
-				url: string;
-		  }
-	);
-export type StringSelectComponent = never;
-export type UserSelectComponent = never;
-export type RoleSelectComponent = never;
-export type MentionableSelectComponent = never;
-export type ChannelSelectComponent = never;
 
-type SectionChildComponents = TextComponent;
-type SectionAccessoryComponents = ButtonComponent | ThumbnailComponent;
-export type SectionComponent = BaseComponent & {
-	type: typeof ComponentType.SECTION;
-	components:
-		| [SectionChildComponents]
-		| [SectionChildComponents, SectionChildComponents]
-		| [SectionChildComponents, SectionChildComponents, SectionChildComponents];
-	accessory: SectionAccessoryComponents;
-};
-
-export type TextComponent = BaseComponent & {
-	type: typeof ComponentType.TEXT_DISPLAY;
-	content: string;
-};
 export type UnfurledMedia = {
 	url: string;
 }
-export type ThumbnailComponent = BaseComponent & {
-	type: typeof ComponentType.THUMBNAIL;
-	media: UnfurledMedia;
-	description?: string;
-	spoiler?: boolean;
-};
-
-export type SeparatorComponent = BaseComponent & {
-	type: typeof ComponentType.SEPARATOR;
-	divider?: boolean;
-	spacing?: 1 | 2;
-}
-export type FileComponent = never;
-export type MediaGalleryComponent = never;
-type ContainerChildComponent = ActionRowComponent | TextComponent | SectionComponent | MediaGalleryComponent | SeparatorComponent | FileComponent;
-export type ContainerComponent = BaseComponent & {
-	type: typeof ComponentType.CONTAINER;
-	components: ContainerChildComponent[];
-	accent_color?: number;
-	spoiler?: boolean;
-}
-//TODO: maybe make these into classes so they are easier to use
-export type Component = ActionRowComponent
-	| ButtonComponent
-	| StringSelectComponent
-	| UserSelectComponent
-	| RoleSelectComponent
-	| MentionableSelectComponent
-	| ChannelSelectComponent
-	| SectionComponent
-	| TextComponent
-	| ThumbnailComponent
-	| SeparatorComponent
-  | FileComponent
-  | MediaGalleryComponent
-  | ContainerComponent;

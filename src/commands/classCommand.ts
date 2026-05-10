@@ -3,6 +3,7 @@ import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { regexEscape } from '../lib/util.ts';
 
 // language=GraphQL
 export const JIJ = `query JIJ($predicate: StringPredicate) {
@@ -55,8 +56,7 @@ export class ClassCommand extends Command<StringArg<'class'> & BoolArg<'regex'>>
 
 		if (!regex && className.includes('.')) return new MessageResponse('class parameter needs to be in JVM format, not java format! Use `/` instead of `.` for package separation, and `$` instead of `.` for inner class separation.');
 		// The method works both locally and on workers, it's just not recognised.
-		// @ts-expect-error
-		const pattern = regex ? className : RegExp.escape(className);
+		const pattern = regex ? className : regexEscape(className);
 		const result = (await query(JIJ, { predicate: { matches: pattern } })) as {
 			gameVersions: GameVersion[];
 		};

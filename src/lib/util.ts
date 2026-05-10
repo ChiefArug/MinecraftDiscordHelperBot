@@ -19,3 +19,12 @@ export const clampInside = (pre: string, post: string, content: string, length: 
 export const sleep = (ms: number): Promise<void> => {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// helper function so we only need one ts-expect-error
+// for some reason webstorm doesn't think this exists, even though it does.
+export const regexEscape = (str: string): string => {
+	// @ts-expect-error
+	return RegExp.escape(str);
+}
+
+export type ListEntries<A extends readonly any[]> = (A)[keyof A & number];

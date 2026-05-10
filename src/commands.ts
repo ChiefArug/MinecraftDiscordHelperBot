@@ -7,7 +7,7 @@ import { QueryCommand } from './commands/queryCommand.ts';
 import { PingCommand } from './commands/pingCommand.ts';
 import { ClassCommand } from './commands/classCommand.ts';
 import { test } from './modrinth.ts';
-import { ButtonStyle, ComponentType } from './lib/discord.ts';
+import { LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './lib/component.ts';
 
 
 /*
@@ -23,58 +23,22 @@ const __commands = {
 	test: new AnonymousCommand('test', 'A test command. Who knows what it could do?', async (_i, _e) => {
 		const res = await test() as {projects: number, versions: number, files: number, authors: number};
 		return new ComponentResponse([
-			{
-				type: ComponentType.TEXT_DISPLAY,
-				content: 'Here are some modrinth stats!',
-			},
-			{
-				type: ComponentType.CONTAINER,
-				components: [
-					{
-						type: ComponentType.SECTION,
-						components: [
-							{
-								type: ComponentType.TEXT_DISPLAY,
-								content: 'Projects: ' + res.projects,
-							},
-						],
-						accessory: {
-							type: ComponentType.THUMBNAIL,
-							description: 'modrinth logo',
-							media: {
-								url: 'https://cdn.modrinth.com/modrinth-new.png',
-							},
-						},
-					},
-					{
-						type: ComponentType.TEXT_DISPLAY,
-						content: 'Versions: ' + res.versions,
-					},
-					{
-						type: ComponentType.TEXT_DISPLAY,
-						content: 'Files: ' + res.files,
-					},
-					{
-						type: ComponentType.SECTION,
-						components: [
-							{
-								type: ComponentType.TEXT_DISPLAY,
-								content: 'Authors: ' + res.authors,
-							},
-						],
-						accessory: {
-							type: ComponentType.BUTTON,
-							style: ButtonStyle.LINK,
-							label: 'Sign Up',
-							emoji: {
-								name: 'modrinth',
-								id: '1040805511538421890',
-							},
-							url: 'https://modrinth.com/auth/sign-up',
-						},
-					},
+			new TextComponent('Here are some modrinth stats!'),
+			new SectionComponent(
+				[
+					new TextComponent('Projects: ' + res.projects),
+					new TextComponent('Versions: ' + res.versions),
+					new TextComponent('Files: ' + res.files),
 				],
-			},
+				new ThumbnailComponent('https://cdn.modrinth.com/modrinth-new.png', 'modrinth logo'),
+			),
+			new SectionComponent(
+				[new TextComponent('Authors: ' + res.authors)],
+				new LinkButtonComponent('https://modrinth.com/auth/sign-up', 'Sign Up', {
+					name: 'modrinth',
+					id: '1040805511538421890',
+				}),
+			),
 		]);
 	}),
 	modid: new ModIdCommand('modid', 'Look up information about a particular Mod ID'),
