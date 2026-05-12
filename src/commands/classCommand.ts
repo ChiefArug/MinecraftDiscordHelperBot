@@ -6,7 +6,7 @@ import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib
 import { regexEscape } from '../lib/util.ts';
 
 // language=GraphQL
-export const JIJ = `query JIJ($predicate: StringPredicate) {
+export const Class = `query Class($predicate: StringPredicate) {
 	gameVersions {
 		version
 		loader
@@ -55,9 +55,8 @@ export class ClassCommand extends Command<StringArg<'class'> & BoolArg<'regex'>>
 		const regex = getOption('regex', false);
 
 		if (!regex && className.includes('.')) return new MessageResponse('class parameter needs to be in JVM format, not java format! Use `/` instead of `.` for package separation, and `$` instead of `.` for inner class separation.');
-		// The method works both locally and on workers, it's just not recognised.
 		const pattern = regex ? className : regexEscape(className);
-		const result = (await query(JIJ, { predicate: { matches: pattern } })) as {
+		const result = (await query(Class, { predicate: { matches: pattern } })) as {
 			gameVersions: GameVersion[];
 		};
 

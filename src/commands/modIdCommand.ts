@@ -84,6 +84,7 @@ export class ModIdCommand extends Command<Args> {
 				)
 			: '';
 
+		//TODO: replace with nice components
 		return new MessageResponse(
 			`Mods found: \nModrinth: ${modrinthInfos}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
 		);
