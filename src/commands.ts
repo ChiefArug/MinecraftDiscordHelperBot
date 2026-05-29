@@ -29,7 +29,7 @@ const __commands = {
 				[
 					new TextComponent('Projects: ' + res.projects),
 					new TextComponent('Versions: ' + res.versions),
-					new TextComponent('Files: ' + res.files),
+					new TextComponent('Files: ' + res.files + '\nandsomereallylongtexttoshowcaseadiscordbugandsoicanseewhentheyfixitsorryaboutthespambutyoudidrunacommandcalledtestthatcouldodanythingandididmeananythingsorrynotsorry'),
 				],
 				new ThumbnailComponent('https://cdn.modrinth.com/modrinth-new.png', 'modrinth logo'),
 			),
