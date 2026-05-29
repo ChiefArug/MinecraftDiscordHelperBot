@@ -120,7 +120,7 @@ export class ClassCommand extends Command<Args> {
 			const cfSlug = cfMods[cfId]?.slug;
 			const mrSlug = mrMods[mrId]?.slug
 			const cfLink = cfSlug && new LinkButtonComponent(`https://www.curseforge.com/minecraft/mc-mods/${cfSlug}`, 'CurseForge', CURSEFORGE);
-			const mrLink = mrSlug && new LinkButtonComponent(`https://modrinth.com/${mrSlug}`, 'Modrinth', MODRINTH);
+			const mrLink = mrSlug && new LinkButtonComponent(`https://modrinth.com/mod/${mrSlug}`, 'Modrinth', MODRINTH);
 			const linkButtons: [ButtonComponent] | [ButtonComponent, ButtonComponent] = (cfLink && mrLink) ? [cfLink, mrLink] : (cfLink ? [cfLink] : (mrLink ? [mrLink] : [new ActionButtonComponent('Error', ButtonStyle.DANGER)]));
 			return new ContainerComponent([
 				new SectionComponent(
