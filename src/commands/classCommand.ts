@@ -77,7 +77,7 @@ export class ClassCommand extends Command<Args> {
 			gameVersions: GameVersion[];
 		};
 
-
+		// TODO: duplicate modids are actually very common, so dedupe based on cf/mr ids i guess.
 		const warnings: string[] = []
 		const mods: Record<string, ModInfo> = {};
 		for (const gameVersion of result.gameVersions) {
