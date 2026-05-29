@@ -15,7 +15,7 @@
     "@graphql-codegen/cli": "^6.2.1",
     "@graphql-codegen/schema-ast": "^5.0.1",
     "graphql": "^16.13.2",
-    "wrangler": "^4.80.0"
+    "wrangler": "~4.93.0"
   },
   "dependencies": {
     "@modrinth/api-client": "^0.2.0",

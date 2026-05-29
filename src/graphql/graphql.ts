@@ -1,5 +1,4 @@
 /* eslint-disable */
-import { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -1481,6 +1480,22 @@ export type ModPredicate = {
   not?: InputMaybe<ModPredicate>;
 };
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  /**
+   * Stop indexing the given game version.
+   * Returns `true` if the game version was indexed before and is now no longer actively indexed.
+   */
+  stopIndexingGameVersion: Scalars['Boolean']['output'];
+};
+
+
+export type MutationStopIndexingGameVersionArgs = {
+  force?: InputMaybe<Scalars['Boolean']['input']>;
+  loader: Loader;
+  version: Scalars['String']['input'];
+};
+
 /** Represents an artifact nested within another one, in a strictly flat structure. */
 export type NestedArtifact = BaseNestedArtifact & {
   __typename?: 'NestedArtifact';
@@ -1555,6 +1570,12 @@ export type PageInfo = {
   /** The cursor ID that points to the first element returned, if there is one */
   startCursor?: Maybe<Scalars['ID']['output']>;
 };
+
+/** Permissions that a user can have */
+export enum Permission {
+  /** The user has the permission to manage the indexed versions (stop indexing, request that a new version is indexed, etc.) */
+  ManageVersions = 'MANAGE_VERSIONS'
+}
 
 /** Represents the ID/slug of a project on CurseForge or Modrinth */
 export type PlatformProjectIdentifier = {
@@ -1801,11 +1822,6 @@ export type TagFilePredicate = {
   replace?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
-export type ModsWithMeForgeQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ModsWithMeForgeQuery = { __typename?: 'Query', gameVersion?: { __typename?: 'GameVersion', mods: { __typename?: 'ModConnection', edges: Array<{ __typename?: 'ModEdge', node: { __typename?: 'Mod', curseforgeProjectId?: number | null, modrinthProjectId?: string | null, modIds?: Array<string> | null, mavenCoordinates?: string | null } }> } } | null };
-
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -1824,22 +1840,3 @@ export class TypedDocumentString<TResult, TVariables>
     return this.value;
   }
 }
-
-export const ModsWithMeForgeDocument = new TypedDocumentString(`
-    query ModsWithMEForge {
-  gameVersion(loader: NeoForge, version: "1.21.1") {
-    mods(
-      where: {anyNestedArtifact: {id: {matches: "io.github.llamalad7:mixinextras-forge"}}}
-    ) {
-      edges {
-        node {
-          curseforgeProjectId
-          modrinthProjectId
-          modIds
-          mavenCoordinates
-        }
-      }
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<ModsWithMeForgeQuery, ModsWithMeForgeQueryVariables>;

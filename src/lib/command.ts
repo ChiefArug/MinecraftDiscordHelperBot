@@ -130,7 +130,7 @@ export abstract class Command<O extends CommandOptions> {
 						)]);
 				}
 			}).catch((err) => {
-				console.error(`Really failed to respond to request! ${int.id}, ${err}, ${err.stack}`);
+				console.error(`Really failed to respond to request! ${int.id}, ${err}, ${int.data.name}, ${int.data.options.map(o => o.name + ': ' + o.value)}, ${err.stack}`);
 			})
 		);
 

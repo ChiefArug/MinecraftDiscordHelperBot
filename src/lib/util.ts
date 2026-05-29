@@ -1,3 +1,5 @@
+import { Loader } from '../graphql/graphql.ts';
+
 export const clamp = (string: string, length: number = 2000) => {
 	if (string.length <= length) {
 		return string;
@@ -28,3 +30,6 @@ export const regexEscape = (str: string): string => {
 }
 
 export type ListEntries<A extends readonly any[]> = (A)[keyof A & number];
+
+
+export type LoaderVersion = [Loader, string];

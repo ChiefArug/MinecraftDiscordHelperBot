@@ -3,7 +3,7 @@ import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 import { query } from '../waifu.ts';
-import { modInfos } from '../modrinth.ts';
+import { mrModInfos } from '../modrinth.ts';
 
 // language=GraphQL
 const ModId = `query ModId($predicate: StringPredicate) {
@@ -79,7 +79,7 @@ export class ModIdCommand extends Command<Args> {
 		};
 
 		let modrinthInfos = Object.keys(mrMods).length
-			? await modInfos(Object.keys(mrMods)).then((a) =>
+			? await mrModInfos(Object.keys(mrMods)).then((a) =>
 					a.map((p) => `[${p.title}](<https://modrinth.com/${p.project_type}/${p.id}>)`).join(', '),
 				)
 			: '';

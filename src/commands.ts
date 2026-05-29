@@ -8,6 +8,7 @@ import { PingCommand } from './commands/pingCommand.ts';
 import { ClassCommand } from './commands/classCommand.ts';
 import { test } from './modrinth.ts';
 import { LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './lib/component.ts';
+import { MODRINTH } from './lib/emoji.ts';
 
 
 /*
@@ -34,10 +35,7 @@ const __commands = {
 			),
 			new SectionComponent(
 				[new TextComponent('Authors: ' + res.authors)],
-				new LinkButtonComponent('https://modrinth.com/auth/sign-up', 'Sign Up', {
-					name: 'modrinth',
-					id: '1040805511538421890',
-				}),
+				new LinkButtonComponent('https://modrinth.com/auth/sign-up', 'Sign Up', MODRINTH),
 			),
 		]);
 	}),

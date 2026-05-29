@@ -1,12 +1,13 @@
 import { CFMod } from './lib/cfTypes.ts';
+import { env } from 'cloudflare:workers';
 
 const URL = 'https://api.curseforge.com/v1/';
 
 export type CurseForgeProject = CFMod
 
-const auth: {'X-API-Key': string} = { 'X-API-Key': process.env.CURSEFORGE_TOKEN! }
+const auth: {'X-API-Key': string} = { 'X-API-Key': env.CURSEFORGE_TOKEN! }
 
-export const modInfo = async (id: number): Promise<{data: CurseForgeProject}> => {
+export const cfModInfo = async (id: number): Promise<{data: CurseForgeProject}> => {
 	return fetch(URL + `mods/${id}` + id, {
 		method: 'GET',
 		headers: {
@@ -17,8 +18,8 @@ export const modInfo = async (id: number): Promise<{data: CurseForgeProject}> =>
 	}).then((res) => res.json());
 };
 
-export const modInfos = async (ids: number[]): Promise<{data: CurseForgeProject[]}> => {
-	return fetch(URL + `mods`, {
+export const cfModInfos = async (ids: number[]): Promise<{data: CurseForgeProject[]}> => {
+	return await fetch(URL + `mods/`, {
 		method: 'POST',
 		headers: {
 			'Accept': 'application/json',
@@ -26,5 +27,5 @@ export const modInfos = async (ids: number[]): Promise<{data: CurseForgeProject[
 			...auth
 		},
 		body: JSON.stringify({ modIds: ids })
-	}).then((res) => res.json());
+	}).then(async (res) => res.json());
 };
