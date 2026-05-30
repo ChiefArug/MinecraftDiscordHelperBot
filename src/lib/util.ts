@@ -33,3 +33,13 @@ export type ListEntries<A extends readonly any[]> = (A)[keyof A & number];
 
 
 export type LoaderVersion = [Loader, string];
+
+export const checkSuccess = (name: string): (res: Response) => Promise<Response> => {
+	return (res) => {
+		if (!res.ok)
+			return Promise.reject(`${name} returned ${res.statusText}`)
+		return Promise.resolve(res);
+	}
+}
+
+export const isNotUndefined = (t: any) => t !== undefined

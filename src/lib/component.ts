@@ -28,7 +28,7 @@ export abstract class ButtonComponent extends Component {
 export class ActionButtonComponent extends ButtonComponent {
 	readonly custom_id?: string;
 
-	public constructor(label: string, style: Exclude<ButtonStyle, typeof ButtonStyle.LINK>, emoji?: PartialEmoji, disabled?: boolean, custom_id?: string) {
+	public constructor(label: string, style: Exclude<ButtonStyle, typeof ButtonStyle.LINK>, custom_id: string, emoji?: PartialEmoji, disabled?: boolean, ) {
 		super(label, style, emoji, disabled);
 		this.custom_id = custom_id;
 	}

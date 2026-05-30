@@ -3,7 +3,7 @@ import { ComponentResponse, InteractionResponse, MessageResponse } from '../lib/
 import { query } from '../waifu.ts';
 import type { ClassDefinition, GameVersion } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
-import type { LoaderVersion } from '../lib/util.ts';
+import { isNotUndefined, LoaderVersion } from '../lib/util.ts';
 import { ActionButtonComponent, ActionRowComponent, ButtonComponent, Component, ContainerComponent, LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from '../lib/component.ts';
 import { mrModInfos } from '../modrinth.ts';
 import { cfModInfos } from '../curseforge.ts';
@@ -108,33 +108,52 @@ export class ClassCommand extends Command<Args> {
 		if (Object.keys(mods).length === 0)
 			return new MessageResponse(`No mods found containing a class matching \`${className}\``);
 
-		const [mrModInfo, {data: cfModInfo}] = await Promise.all([
-			mrModInfos(Object.values(mods).map(({mrId}) => mrId)),
-			cfModInfos(Object.values(mods).map(({cfId}) => cfId)),
-		])
+		const [mrModInfo, { data: cfModInfo }] = await Promise.all([
+			mrModInfos(
+				Object.values(mods)
+					.map(({ mrId }) => mrId)
+					.filter(isNotUndefined),
+			),
+			cfModInfos(
+				Object.values(mods)
+					.map(({ cfId }) => cfId)
+					.filter(isNotUndefined),
+			),
+		]);
 
 		const mrMods: Record<string, Project> = mrModInfo.reduce((prev, cur) => Object.assign(prev, {[cur.id]: cur}), {} as Record<string, Project>);
 		const cfMods: Record<number, CFMod> = cfModInfo.reduce((prev, cur) => Object.assign(prev, { [cur.id]: cur }), {} as Record<number, CFMod>);
 
 		const components: Component[] = Object.values(mods).map(({ versions, modid, cfId, mrId, classes }) => {
 			const cfSlug = cfMods[cfId]?.slug;
-			const mrSlug = mrMods[mrId]?.slug
-			const cfLink = cfSlug && new LinkButtonComponent(`https://www.curseforge.com/minecraft/mc-mods/${cfSlug}`, 'CurseForge', CURSEFORGE);
-			const mrLink = mrSlug && new LinkButtonComponent(`https://modrinth.com/mod/${mrSlug}`, 'Modrinth', MODRINTH);
-			const linkButtons: [ButtonComponent] | [ButtonComponent, ButtonComponent] = (cfLink && mrLink) ? [cfLink, mrLink] : (cfLink ? [cfLink] : (mrLink ? [mrLink] : [new ActionButtonComponent('Error', ButtonStyle.DANGER)]));
+			const mrSlug = mrMods[mrId]?.slug;
+			const cfLink = cfSlug ? new LinkButtonComponent(`https://www.curseforge.com/minecraft/mc-mods/${cfSlug}`, 'CurseForge', CURSEFORGE) : undefined;
+			const mrLink = mrSlug ? new LinkButtonComponent(`https://modrinth.com/mod/${mrSlug}`, 'Modrinth', MODRINTH) : undefined;
+			const linkButtons: [] | [LinkButtonComponent] | [LinkButtonComponent, LinkButtonComponent] =
+				cfLink && mrLink ? [cfLink, mrLink] : cfLink ? [cfLink] : mrLink ? [mrLink] : [];
+			const linkButtonsComponent = linkButtons.length == 0 ?  linkButtons : [new ActionRowComponent(linkButtons)];
+			const classStrings: string[] = [];
+			for (const clss of classes) {
+				const name = clss.name.split('/').pop()!;
+				if (!(name in classStrings))
+					classStrings.push(`\`${name}\``);
+				if (classStrings.length >= 5)
+					break;
+			}
+			const classString = classStrings.join(', ') + (classes.length > 5 ? ` and ${classes.length - 5} more` : '');
+
+			const imageUrl: string | undefined = cfMods[cfId]?.logo?.url ?? mrMods[mrId]?.icon_url;
+			const bodyCore = new TextComponent(
+				`### ${cfMods[cfId]?.name ?? mrMods[mrId]?.title ?? 'Unknown'}\n` +
+					`-# ${modid}\n` +
+					`Versions: ${versions.map(([l, v]) => `${l}-${v}`).join(', ')}\n` +
+					`Classes: ${classString}`,
+			);
+			const bodyComponent = imageUrl ? new SectionComponent([bodyCore], new ThumbnailComponent(imageUrl)) : bodyCore
+
 			return new ContainerComponent([
-				new SectionComponent(
-					[
-						new TextComponent(
-							`### ${cfMods[cfId]?.name ?? mrMods[mrId]?.title ?? 'unknown'}\n` +
-								`-# ${modid}\n` +
-								`Versions: ${versions.map(([l, v]) => `${l}-${v}`)}\n` +
-								`Classes: \`${[...new Set(classes.map((cl) => cl.name.split('/').pop()))].join('`, `')}\``,
-						),
-					],
-					new ThumbnailComponent(cfMods[cfId]?.logo?.url ?? mrMods[mrId]?.icon_url ?? 'invalid'),
-				),
-				new ActionRowComponent(linkButtons),
+				bodyComponent,
+				...linkButtonsComponent,
 				...(warnings.length > 0 ? [new TextComponent(`⚠️ ${warnings.join('\n')} ⚠️`)] : []),
 			]);
 		});
