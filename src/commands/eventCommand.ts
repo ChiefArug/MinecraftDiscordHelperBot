@@ -66,7 +66,7 @@ export class EventCommand extends Command<Args> {
 			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<InteractionResponse> {
+	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, id: string): Promise<InteractionResponse> {
 		const event = getOption('event');
 		const version = getOption('version');
 		const loader = getOption('modloader') as ListEntries<typeof Loaders> | undefined;

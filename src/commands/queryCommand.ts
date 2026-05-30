@@ -17,7 +17,7 @@ export class QueryCommand extends Command<StringArg<'query'>> {
 		});
 	}
 
-	protected async executeImpl(_e: Env, getOption: OptionGetter<StringArg<'query'>>): Promise<InteractionResponse> {
+	protected async executeImpl(_e: Env, getOption: OptionGetter<StringArg<'query'>>, id: string): Promise<InteractionResponse> {
 		const q = getOption('query');
 		if (!q) return new MessageResponse('Query was null!');
 		const queryResult = await query(q);

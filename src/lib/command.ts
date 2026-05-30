@@ -89,11 +89,12 @@ export abstract class Command<O extends CommandOptions> {
 	 * Handle this command being executed.
 	 * @param env Environment Variables
 	 * @param getOption Helper function to get an option
+	 * @param id The unique id of this command invocation
 	 * @example
 	 * return new MessageResponse("Pong!");
 	 * @protected
 	 */
-	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>): Promise<InteractionResponse>;
+	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<InteractionResponse>;
 
 	/**
 	 * Execute this command from the provided interaction information and environment variables
@@ -107,7 +108,7 @@ export abstract class Command<O extends CommandOptions> {
 		const base = `https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${int.token}`;
 		// this block executes the command, then tries to gracefully deal with any errors.
 		// it is not awaited, instead it is passed to CF to finish after the response is returned, and will time out after 30s.
-		ctx.waitUntil(this.executeImpl(env, optionGetter)
+		ctx.waitUntil(this.executeImpl(env, optionGetter, int.id)
 			// first stage, basic response. both success and errors edit the original message
 			.then((response) => {
 				return fetch(response.request(new URL(base + '/messages/@original'), 'PATCH'));

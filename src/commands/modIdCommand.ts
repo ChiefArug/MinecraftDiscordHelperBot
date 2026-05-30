@@ -45,7 +45,7 @@ export class ModIdCommand extends Command<Args> {
 			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<InteractionResponse> {
+	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, id: string): Promise<InteractionResponse> {
 		const regex = getOption('regex', false);
 		const modid = getOption('modid');
 		if (!modid) return new MessageResponse('modid parameter is required!');
@@ -85,9 +85,6 @@ export class ModIdCommand extends Command<Args> {
 			: '';
 
 		//TODO: replace with nice components
-		return new MessageResponse(
-			`Mods found: \nModrinth: ${modrinthInfos}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
-		);
+		return new MessageResponse(`Mods found: \nModrinth: ${modrinthInfos}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`);
 	}
-
 }

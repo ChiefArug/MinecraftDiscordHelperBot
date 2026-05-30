@@ -6,7 +6,7 @@ export class PingCommand extends Command<never> {
 		super(name, description);
 	}
 
-	executeImpl(_e: Env, _go: OptionGetter<never>): Promise<InteractionResponse> {
+	executeImpl(_e: Env, _go: OptionGetter<never>, id: string): Promise<InteractionResponse> {
 		return Promise.resolve(new MessageResponse('Pong!'));
 	}
 }

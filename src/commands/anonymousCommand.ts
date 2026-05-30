@@ -16,7 +16,7 @@ export class AnonymousCommand<O extends CommandOptions> extends Command<O> {
 		this.exec = exec;
 	}
 
-	protected executeImpl(env: Env, getOption: OptionGetter<O>): Promise<InteractionResponse> {
+	protected executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<InteractionResponse> {
 		return this.exec(env, getOption);
 	}
 }

@@ -9,7 +9,7 @@ import { ClassCommand } from './commands/classCommand.ts';
 import { test } from './modrinth.ts';
 import { LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './lib/component.ts';
 import { MODRINTH } from './lib/emoji.ts';
-import { cacheIt } from './lib/cache.ts';
+import { cacheString } from './lib/cache.ts';
 
 
 /*
@@ -27,7 +27,7 @@ const __commands = {
 		const res = await test() as {projects: number, versions: number, files: number, authors: number};
 		const rand: string = await fetch('https://api.drand.sh/public/latest').then((r) => r.json() as Promise<{round: number, randomness: string}>).then(r => r.randomness);
 
-		const maybeCached = await cacheIt(() => rand, 'random');
+		const maybeCached = await cacheString(() => rand, 'random');
 
 		return new ComponentResponse([
 			new TextComponent('Here are some modrinth stats!'),

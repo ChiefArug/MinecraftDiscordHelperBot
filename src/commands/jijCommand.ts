@@ -41,12 +41,16 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 			regex: {
 				name: 'regex',
 				type: CommandOptionType.BOOLEAN,
-				description: 'If the locator should use full regex'
+				description: 'If the locator should use full regex',
 			},
 		});
 	}
 
-	protected override async executeImpl(env: Env, getOption: OptionGetter<StringArg<'locator'> & BoolArg<'regex'>>): Promise<InteractionResponse> {
+	protected override async executeImpl(
+		env: Env,
+		getOption: OptionGetter<StringArg<'locator'> & BoolArg<'regex'>>,
+		id: string,
+	): Promise<InteractionResponse> {
 		const locator = getOption('locator');
 		if (!locator) return new MessageResponse('locator parameter is required!');
 
@@ -65,10 +69,13 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 				const cf = node.curseforgeProjectId;
 				const mr = node.modrinthProjectId;
 				let nestedArtifactsFlat = node.nestedArtifactsFlat as NestedArtifact[];
-				const jijed = nestedArtifactsFlat?.length ?? -1
+				const jijed = nestedArtifactsFlat?.length ?? -1;
 				const modids = node.modIds as string[];
-				const matchingJij = nestedArtifactsFlat.filter(na => na.id.match(pattern)).map(na => `\`${na.id}\` (${na.version})`).join(",");
-				const modidsDisplay = modids.map(m => `\`${m}\``).join(",");
+				const matchingJij = nestedArtifactsFlat
+					.filter((na) => na.id.match(pattern))
+					.map((na) => `\`${na.id}\` (${na.version})`)
+					.join(',');
+				const modidsDisplay = modids.map((m) => `\`${m}\``).join(',');
 				if (cf) (cfMods[cf] ??= []).push(`[${modidsDisplay}] ${loader} ${version} has ${jijed} jar(s) inside. Matched: ${matchingJij}`);
 				if (mr) (mrMods[mr] ??= []).push(`[${modidsDisplay}] ${loader} ${version} has ${jijed} jar(s) inside. Matched: ${matchingJij}`);
 			}

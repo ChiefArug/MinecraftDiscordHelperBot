@@ -10,6 +10,7 @@ import { cfModInfos } from '../curseforge.ts';
 import { CFMod } from '../lib/cfTypes.ts';
 import { Labrinth } from '@modrinth/api-client';
 import { CURSEFORGE, MODRINTH } from '../lib/emoji.ts';
+import { saveToCache } from '../lib/cache.ts';
 
 type Project = Labrinth.Projects.v2.Project;
 
@@ -62,7 +63,7 @@ export class ClassCommand extends Command<Args> {
 		});
 	}
 
-	protected override async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<InteractionResponse> {
+	protected override async executeImpl(env: Env, getOption: OptionGetter<Args>, id: string): Promise<InteractionResponse> {
 		const className = getOption('class');
 		if (!className) return new MessageResponse('class parameter is required!');
 
@@ -157,7 +158,24 @@ export class ClassCommand extends Command<Args> {
 				...(warnings.length > 0 ? [new TextComponent(`⚠️ ${warnings.join('\n')} ⚠️`)] : []),
 			]);
 		});
+		// we can fit 40 components in a message
+		// each mod entry is up to 8 components (body, thumbnail, body container, cf link, mr link, link container, warning box, main container
+		// and we need 4 components for the pagination
+		// so if we have 5 mods thats 40 components exactly and we can display all of them
+		// otherwise we have to only send 4 w/ pagination buttons
+		// maaybe also send mod selection to shrink it, which would add two components (but we have plenty)
 
-		return new ComponentResponse(components)
+		if (components.length > 5) {
+			// pagination required
+			const first = components.slice(0, 4);
+			const buttons = new ActionRowComponent([
+				new ActionButtonComponent('<', ButtonStyle.SECONDARY, `<${this.name}+${id}`),
+				new ActionButtonComponent('>', ButtonStyle.SECONDARY, `>${this.name}+${id}`),
+			]);
+			await saveToCache(components, `pages/${id}`)
+			return new ComponentResponse([...first, buttons]);
+		} else {
+			return new ComponentResponse(components);
+		}
 	}
 }

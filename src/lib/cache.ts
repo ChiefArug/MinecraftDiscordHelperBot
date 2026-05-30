@@ -1,6 +1,34 @@
 const base = "https://waifu.chiefarug.workers.dev/"
 
-export const cacheIt = async (value: () => string, key: string): Promise<string> => {
+export const saveToCache = async <T extends object>(value: T, key: string): Promise<void> => {
+	const cacheKey = new Request(base + 'json/' + key);
+	const cache = caches.default;
+	const cacheValue = new Response(JSON.stringify(value));
+	await cache.put(cacheKey, cacheValue);
+}
+
+export const getFromCache = async <T extends object>(key: string): Promise<T | undefined> => {
+	const cacheKey = new Request(base + 'json/' + key);
+	const cache = caches.default;
+	const cached = await cache.match(cacheKey);
+	return cached ? cached.json() : undefined;
+}
+
+export const cacheJson = async <T extends object>(value: () => Promise<T>, key: string): Promise<T> => {
+	const cacheKey = new Request(base + 'json/' + key);
+
+	const cache = caches.default;
+
+	let response = await cache.match(cacheKey);
+
+	if (response) return await response.json();
+
+	const v = await value();
+	await cache.put(cacheKey, new Response(JSON.stringify(v)));
+	return v;
+}
+
+export const cacheString = async (value: () => Promise<string>, key: string): Promise<string> => {
 	const cacheKey = new Request(base + key);
 
 	const cache = caches.default;
@@ -10,7 +38,7 @@ export const cacheIt = async (value: () => string, key: string): Promise<string>
 	if (response)
 		return await response.text()
 
-	const v = value();
+	const v = await value();
 
 	await cache.put(cacheKey, new Response(v));
 	return v;
