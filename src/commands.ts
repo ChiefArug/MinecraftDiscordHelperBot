@@ -9,13 +9,15 @@ import { ClassCommand } from './commands/classCommand.ts';
 import { test } from './modrinth.ts';
 import { LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './lib/component.ts';
 import { MODRINTH } from './lib/emoji.ts';
+import { cacheIt } from './lib/cache.ts';
 
 
 /*
 COMMANDS TO ADD
 Search by package substring
 Search by method usage
-Search
+Search mixin stuff
+search by method args (events)
 
  */
 
@@ -23,6 +25,10 @@ const __commands = {
 	ping: new PingCommand('ping', 'Check if the bot is online'),
 	test: new AnonymousCommand('test', 'A test command. Who knows what it could do?', async (_i, _e) => {
 		const res = await test() as {projects: number, versions: number, files: number, authors: number};
+		const rand: string = await fetch('https://api.drand.sh/public/latest').then((r) => r.json() as Promise<{round: number, randomness: string}>).then(r => r.randomness);
+
+		const maybeCached = await cacheIt(() => rand, 'random');
+
 		return new ComponentResponse([
 			new TextComponent('Here are some modrinth stats!'),
 			new SectionComponent(
@@ -37,6 +43,8 @@ const __commands = {
 				[new TextComponent('Authors: ' + res.authors)],
 				new LinkButtonComponent('https://modrinth.com/auth/sign-up', 'Sign Up', MODRINTH),
 			),
+			new TextComponent(`Today's random number: ${maybeCached}!`),
+			new TextComponent(`Now's random number: ${rand}!`)
 		]);
 	}),
 	modid: new ModIdCommand('modid', 'Look up information about a particular Mod ID'),
