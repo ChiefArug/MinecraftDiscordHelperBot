@@ -112,6 +112,21 @@ export type CommandInteraction<O extends CommandOptions> = {
 		resolved?: ResolvedData;
 	};
 } & BaseInteraction;
+type InteractiveComponentType =
+	| typeof ComponentType.BUTTON
+	| typeof ComponentType.STRING_SELECT
+	| typeof ComponentType.USER_SELECT
+	| typeof ComponentType.ROLE_SELECT
+	| typeof ComponentType.MENTIONABLE_SELECT
+	| typeof ComponentType.CHANNEL_SELECT;
+export type ComponentInteraction = {
+	type: InteractionType.MESSAGE_COMPONENT;
+	data: {
+		component_type: InteractiveComponentType;
+		id: number;
+		custom_id: string;
+	};
+};
 export type ModalInteraction = {
 	type: InteractionType.MODAL_SUBMIT;
 	data: {
@@ -120,7 +135,7 @@ export type ModalInteraction = {
 		resolved?: ResolvedData;
 	};
 } & BaseInteraction;
-export type Interaction = PingInteraction | CommandInteraction<any> | ModalInteraction;
+export type Interaction = PingInteraction | CommandInteraction<any> | ModalInteraction | ComponentInteraction;
 
 export const ComponentType = {
 	ACTION_ROW: 1,

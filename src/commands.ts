@@ -27,7 +27,7 @@ const __commands = {
 		const res = await test() as {projects: number, versions: number, files: number, authors: number};
 		const rand: string = await fetch('https://api.drand.sh/public/latest').then((r) => r.json() as Promise<{round: number, randomness: string}>).then(r => r.randomness);
 
-		const maybeCached = await cacheString(() => rand, 'random');
+		const maybeCached = await cacheString(() => Promise.resolve(rand), 'random');
 
 		return new ComponentResponse([
 			new TextComponent('Here are some modrinth stats!'),
@@ -35,7 +35,7 @@ const __commands = {
 				[
 					new TextComponent('Projects: ' + res.projects),
 					new TextComponent('Versions: ' + res.versions),
-					new TextComponent('Files: ' + res.files + '\nandsomereallylongtexttoshowcaseadiscordbugandsoicanseewhentheyfixitsorryaboutthespambutyoudidrunacommandcalledtestthatcouldodanythingandididmeananythingsorrynotsorry'),
+					new TextComponent('Files: ' + res.files),
 				],
 				new ThumbnailComponent('https://cdn.modrinth.com/modrinth-new.png', 'modrinth logo'),
 			),

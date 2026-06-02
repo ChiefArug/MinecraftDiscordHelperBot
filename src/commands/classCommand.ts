@@ -165,15 +165,15 @@ export class ClassCommand extends Command<Args> {
 		// otherwise we have to only send 4 w/ pagination buttons
 		// maaybe also send mod selection to shrink it, which would add two components (but we have plenty)
 
-		if (components.length > 5) {
+		if (components.length > 4) {
 			// pagination required
-			const first = components.slice(0, 4);
-			const buttons = new ActionRowComponent([
-				new ActionButtonComponent('<', ButtonStyle.SECONDARY, `<${this.name}+${id}`),
-				new ActionButtonComponent('>', ButtonStyle.SECONDARY, `>${this.name}+${id}`),
+			const first = components.slice(0, 5);
+			const buttons: Component[] = new ActionRowComponent([
+				new ActionButtonComponent('<', ButtonStyle.SECONDARY, `<-${this.name}-${id}`),
+				new ActionButtonComponent('>', ButtonStyle.SECONDARY, `>-${this.name}-${id}`),
 			]);
 			await saveToCache(components, `pages/${id}`)
-			return new ComponentResponse([...first, buttons]);
+			return new ComponentResponse([...first]);
 		} else {
 			return new ComponentResponse(components);
 		}

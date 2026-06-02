@@ -28,6 +28,7 @@ export class AckResponse extends InteractionResponse {
 	}
 }
 
+// TODO: allow making this ephemeral (and maybe do so by default).
 export class MessageResponse extends InteractionResponse {
 	constructor(message: string) {
 		super(

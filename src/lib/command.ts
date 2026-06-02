@@ -94,6 +94,9 @@ export abstract class Command<O extends CommandOptions> {
 	 * return new MessageResponse("Pong!");
 	 * @protected
 	 */
+	// TODO: refactor so this takes a single object that can be split out for the different params (so i can add stuff to it without breaking thigns)
+	//  object needs to have a way to submit stuff to be awaited after we return a response.
+	//  also try add first class pagination support - probably by having it return a Promise<Component[]> (may need an | in there, so Promise<Component[] | InteractionResponse>)
 	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<InteractionResponse>;
 
 	/**
@@ -108,33 +111,45 @@ export abstract class Command<O extends CommandOptions> {
 		const base = `https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${int.token}`;
 		// this block executes the command, then tries to gracefully deal with any errors.
 		// it is not awaited, instead it is passed to CF to finish after the response is returned, and will time out after 30s.
-		ctx.waitUntil(this.executeImpl(env, optionGetter, int.id)
-			// first stage, basic response. both success and errors edit the original message
-			.then((response) => {
-				return fetch(response.request(new URL(base + '/messages/@original'), 'PATCH'));
-			}, (err) => {
-				console.error(`Error responding to request ${int.id}: ${err}, ${err.stack}`);
-				return fetch(
-					new MessageResponse(`An error occurred executing that. Id for logging: ${int.id}`).request(
-						new URL(base + '/messages/@original'),
-						'PATCH',
-					),
-				);
-			})
-			// second stage, more error handling. will send a new message rather than try edit the original response
-			.then((res) => {
-				if (res.status !== 200) {
-					return Promise.all([
-						res.text().then(txt => console.error(`Failed to respond to ${int.id}: ${res.status}, ${txt}`)),
-						fetch(new MessageResponse(`An error occurred responding to that request :(. Id for logging: ${int.id}`)
-								.request(new URL(base), 'POST'),
-						)]);
-				}
-			}).catch((err) => {
-				console.error(`Really failed to respond to request! ${int.id}, ${err}, ${int.data.name}, ${int.data.options.map(o => o.name + ': ' + o.value)}, ${err.stack}`);
-			})
+		ctx.waitUntil(
+			this.executeImpl(env, optionGetter, int.id)
+				// first stage, basic response. both success and errors edit the original message
+				.then(
+					(response) => {
+						return fetch(response.request(new URL(base + '/messages/@original'), 'PATCH'));
+					},
+					(err) => {
+						console.error(`Error responding to request ${int.id}: ${err}, ${err.stack}`);
+						return fetch(
+							new MessageResponse(`An error occurred executing that. Id for logging: ${int.id}`).request(
+								new URL(base + '/messages/@original'),
+								'PATCH',
+							),
+						);
+					},
+				)
+				// second stage, more error handling. will send a new message rather than try edit the original response
+				.then((res) => {
+					if (res.status !== 200) {
+						return Promise.all([
+							res.text().then((txt) => console.error(`Failed to respond to ${int.id}: ${res.status}, ${txt}`)),
+							fetch(
+								new MessageResponse(`An error occurred responding to that request :(. Id for logging: ${int.id}`).request(
+									new URL(base),
+									'POST',
+								),
+							),
+						]);
+					}
+				})
+				.catch((err) => {
+					console.error(
+						`Really failed to respond to request! ${int.id}, ${err}, ${int.data.name}, ${int.data.options.map((o) => o.name + ': ' + o.value)}, ${err.stack}`,
+					);
+				}),
 		);
 
+ 		// TODO: consider delaying this by a bit (~30s?) and sending the ack through a webhook, and changing this to the other response for when its acknowledged another way
 		//immediately return an ack response
 		return Promise.resolve(new AckResponse());
 	}
