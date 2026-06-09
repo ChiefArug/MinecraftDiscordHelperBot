@@ -1,6 +1,6 @@
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
 import { ComponentType, Interaction } from './lib/discord.ts';
-import { AckEditResponse, ComponentResponse, MessageResponse, PingResponse } from './lib/response.ts';
+import { ComponentResponse, MessageResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { getFromCache } from './lib/cache.ts';
@@ -84,13 +84,13 @@ export default {
 						const collected = getPage(components, page);
 
 						if (collected.length === 0) return new MessageResponse("Invalid page number").response();
-						const {message: { id: messageId }} = message;
 
 						return new ComponentResponse(
 							[...collected, makePaginationButtons(commandName, id, page)],
 							InteractionResponseType.UPDATE_MESSAGE,
 						).response();
 					}
+					// TODO: selector component as part of pagintion buttons to choose a single thing to show
 					default: {
 						console.warn(`Unknown interaction type ${message.type}`);
 						return new Response('Unknown interaction type', { status: 501 });

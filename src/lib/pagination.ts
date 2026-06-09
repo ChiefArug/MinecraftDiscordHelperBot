@@ -24,10 +24,12 @@ export const getPage = (components: Component[], page: number): Component[] => {
 	let curPageSize = 0;
 	let curPage = 1;
 	const collected: Component[] = [];
+
 	for (let i = 0; i < components.length; i++) {
 		const component = components[i];
 		const count = countComponents(component);
 		if (curPageSize + count <= PAGE_SIZE) {
+			// on the same page
 			curPageSize += count;
 			if (curPage === page) {
 				collected.push(component);
@@ -36,6 +38,7 @@ export const getPage = (components: Component[], page: number): Component[] => {
 			// the end of our current page, we need not go further
 			break;
 		} else {
+			// new page
 			curPage++;
 			curPageSize = 0;
 		}

@@ -17,7 +17,7 @@ export const Class = `query Class($predicate: StringPredicate) {
 	gameVersions {
 		version
 		loader
-		mods(where: {anyClass: {name: $predicate}} first: 10) {
+		mods(where: {anyClass: {name: $predicate}} first: 50) {
 			count
 			edges {
 				node {
