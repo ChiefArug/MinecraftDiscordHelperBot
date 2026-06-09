@@ -77,7 +77,10 @@ export type InteractionContextType = (typeof InteractionContextType)[keyof typeo
 export type Snowflake = `${bigint}`;
 
 // some wip types
-export type Message = never;
+export type Message = {
+	id: string;
+	channel_id: string;
+};
 export type ComponentResponse = never;
 export type ResolvedData = never;
 
@@ -126,7 +129,7 @@ export type ComponentInteraction = {
 		id: number;
 		custom_id: string;
 	};
-};
+} & BaseInteraction;
 export type ModalInteraction = {
 	type: InteractionType.MODAL_SUBMIT;
 	data: {

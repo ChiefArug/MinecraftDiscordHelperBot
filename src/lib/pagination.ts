@@ -4,6 +4,9 @@ import { ButtonStyle } from './discord.ts';
 /** The maximum number of components per page, with 4 components available for pagination */
 export const PAGE_SIZE = MAX_COMPONENTS - 4;
 
+
+// TODO: disable buttons if last/first page.
+//  probably requires incorporating this into getPage.
 export const makePaginationButtons = (commandName: string, interactionId: string, curPage: number) =>  new ActionRowComponent([
 	new ActionButtonComponent('<', ButtonStyle.SECONDARY, `<-${commandName}-${interactionId}-${curPage}`),
 	new ActionButtonComponent('>', ButtonStyle.SECONDARY, `>-${commandName}-${interactionId}-${curPage}`),

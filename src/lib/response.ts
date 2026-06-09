@@ -28,6 +28,12 @@ export class AckResponse extends InteractionResponse {
 	}
 }
 
+export class AckEditResponse extends InteractionResponse {
+	constructor() {
+		super({ type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE });
+	}
+}
+
 export class MessageResponse extends InteractionResponse {
 	constructor(message: string, ephemeral: boolean = true) {
 		super(
@@ -43,9 +49,9 @@ export class MessageResponse extends InteractionResponse {
 }
 
 export class ComponentResponse extends InteractionResponse {
-	constructor(components: Component[]) {
+	constructor(components: Component[], type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE | InteractionResponseType.UPDATE_MESSAGE = InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE) {
 		super({
-			type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+			type: type,
 			data: {
 				flags: 1 << 15,
 				components: components,

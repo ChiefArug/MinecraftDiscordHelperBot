@@ -1,11 +1,11 @@
-import { InteractionType, verifyKey } from 'discord-interactions';
+import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
 import { ComponentType, Interaction } from './lib/discord.ts';
-import { ComponentResponse, MessageResponse, PingResponse } from './lib/response.ts';
+import { AckEditResponse, ComponentResponse, MessageResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { getFromCache } from './lib/cache.ts';
-import { Component, countComponents } from './lib/component.ts';
-import { getPage, makePaginationButtons, PAGE_SIZE } from './lib/pagination.ts';
+import { Component } from './lib/component.ts';
+import { getPage, makePaginationButtons } from './lib/pagination.ts';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
 
@@ -72,7 +72,6 @@ export default {
 						const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
 						if (Number.isNaN(page)) return new MessageResponse("Malformed page number").response();
 
-
 						const command = COMMANDS[commandName];
 						if (!command) return new MessageResponse('Command not recognised.').response();
 
@@ -85,8 +84,12 @@ export default {
 						const collected = getPage(components, page);
 
 						if (collected.length === 0) return new MessageResponse("Invalid page number").response();
+						const {message: { id: messageId }} = message;
 
-						return new ComponentResponse([...collected, makePaginationButtons(commandName, id, page)]).response();
+						return new ComponentResponse(
+							[...collected, makePaginationButtons(commandName, id, page)],
+							InteractionResponseType.UPDATE_MESSAGE,
+						).response();
 					}
 					default: {
 						console.warn(`Unknown interaction type ${message.type}`);
