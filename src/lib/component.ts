@@ -3,6 +3,28 @@ import { ButtonStyle, ComponentType, type PartialEmoji, type UnfurledMedia } fro
 /** The maximum number of components in a message */
 export const MAX_COMPONENTS = 40;
 
+/**
+ * Count the number of components nested inside a component (including the component itself).
+ * @param component
+ */
+export const countComponents = (component: Component): number => {
+	switch (component.type) {
+		case ComponentType.SECTION:
+			return (component as SectionComponent).components.length + 2;
+		case ComponentType.CONTAINER:
+			return (component as ContainerComponent).components.map((c) => countComponents(c)).reduce((a, b) => a + b, 0) + 1;
+		case ComponentType.ACTION_ROW:
+			return (component as ActionRowComponent).components.length + 1;
+		default:
+			return 1;
+	}
+}
+
+/**
+ * A component for Discord's Components V2 system.
+ * IMPORTANT: DO NOT ADD ANY FUNCTIONS TO THIS OR RELY ON INSTANCEOF WORKING.
+ * This class is used as a duck type, so objects with the same fields are valid for it.
+ */
 export abstract class Component {
 	readonly type: ComponentType;
 	readonly id?: number;
@@ -10,11 +32,6 @@ export abstract class Component {
 	protected constructor(type: ComponentType, id?: number) {
 		this.type = type;
 		this.id = id;
-	}
-
-	/** @returns the number of components this count for. At least 1, may be more if it has child components */
-	public count(): number {
-		return 1;
 	}
 }
 
@@ -36,7 +53,7 @@ export abstract class ButtonComponent extends Component {
 export class ActionButtonComponent extends ButtonComponent {
 	readonly custom_id?: string;
 
-	public constructor(label: string, style: Exclude<ButtonStyle, typeof ButtonStyle.LINK>, custom_id: string, emoji?: PartialEmoji, disabled?: boolean, ) {
+	public constructor(label: string, style: Exclude<ButtonStyle, typeof ButtonStyle.LINK>, custom_id: string, disabled?: boolean, emoji?: PartialEmoji, ) {
 		super(label, style, emoji, disabled);
 		this.custom_id = custom_id;
 	}
@@ -68,10 +85,6 @@ export class SectionComponent extends Component {
 		this.components = components;
 		this.accessory = accessory;
 	}
-
-	count(): number {
-		return super.count() + this.components.map((c) => c.count()).reduce((a, b) => a + b, 0) + this.accessory.count();
-	}
 }
 
 export class TextComponent extends Component {
@@ -96,11 +109,6 @@ export class ActionRowComponent extends Component {
 	public constructor(components: ActionRowComponentList, id?: number) {
 		super(ComponentType.ACTION_ROW, id);
 		this.components = components;
-	}
-
-	count(): number {
-		// button components have count 1, so we don't need to do more than this
-		return super.count() + this.components.length;
 	}
 }
 
@@ -143,10 +151,6 @@ export class ContainerComponent extends Component {
 		this.components = components;
 		this.accent_color = accent_color;
 		this.spoiler = spoiler;
-	}
-
-	count(): number {
-		return super.count() + this.components.map(c => c.count()).reduce((a, b) => a + b, 0);
 	}
 }
 

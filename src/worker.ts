@@ -1,9 +1,11 @@
 import { InteractionType, verifyKey } from 'discord-interactions';
 import { ComponentType, Interaction } from './lib/discord.ts';
-import { MessageResponse, PingResponse } from './lib/response.ts';
+import { ComponentResponse, MessageResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { getFromCache } from './lib/cache.ts';
+import { Component, countComponents } from './lib/component.ts';
+import { getPage, makePaginationButtons, PAGE_SIZE } from './lib/pagination.ts';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
 
@@ -61,20 +63,30 @@ export default {
 						if (component_type !== ComponentType.BUTTON) return new Response('Unknown component type', { status: 501 })
 
 						const parts = custom_id.split('-');
-						if (parts.length != 3) return new MessageResponse('Unrecognised button').response();
-						const [mode, commandName, id] = parts;
+						if (parts.length != 4) return new MessageResponse('Unrecognised button').response();
+						if (parts.some(p => p === undefined)) return new MessageResponse("Malformed button!").response();
 
-						if (!(mode || commandName || id)) return new MessageResponse("Malformed button!").response();
+						const [mode, commandName, id, stringPage] = parts;
+						if (mode !== '<' && mode !== '>') return new MessageResponse("Malformed mode").response();
+
+						const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
+						if (Number.isNaN(page)) return new MessageResponse("Malformed page number").response();
+
 
 						const command = COMMANDS[commandName];
 						if (!command) return new MessageResponse('Command not recognised.').response();
 
 						const cache = await getFromCache(`pages/${id}`);
+						// todo: edit to remove buttons?
+						if (cache === undefined) return new MessageResponse('Message cache expired').response();
+						if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted').response();
 
-						// TODO: need to add thing to commands to send a response for a button.
-						//  may need to refactor commands to take a command context object and let them submit stuff to that
-						
-						return new MessageResponse('TODO').response();
+						const components = cache as Component[];
+						const collected = getPage(components, page);
+
+						if (collected.length === 0) return new MessageResponse("Invalid page number").response();
+
+						return new ComponentResponse([...collected, makePaginationButtons(commandName, id, page)]).response();
 					}
 					default: {
 						console.warn(`Unknown interaction type ${message.type}`);

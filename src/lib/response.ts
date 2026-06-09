@@ -28,14 +28,14 @@ export class AckResponse extends InteractionResponse {
 	}
 }
 
-// TODO: allow making this ephemeral (and maybe do so by default).
 export class MessageResponse extends InteractionResponse {
-	constructor(message: string) {
+	constructor(message: string, ephemeral: boolean = true) {
 		super(
 			{
 				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 				data: {
 					content: message,
+					flags: ephemeral ? 1 << 6 : 0
 				},
 			}
 		);

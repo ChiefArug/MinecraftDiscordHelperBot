@@ -1,16 +1,10 @@
-import {
-	ButtonStyle,
-	type CommandInteraction,
-	type CommandOption,
-	type CommandOptions,
-	CommandOptionType,
-	type CommandOptionTypeT,
-	InteractionContextType,
-} from './discord.ts';
+import { type CommandInteraction, type CommandOption, type CommandOptions, CommandOptionType, type CommandOptionTypeT, InteractionContextType } from './discord.ts';
 
 import { AckResponse, ComponentResponse, InteractionResponse, MessageResponse } from './response.ts';
-import { ActionButtonComponent, ActionRowComponent, Component, MAX_COMPONENTS } from './component.ts';
+import { Component } from './component.ts';
 import { saveToCache } from './cache.ts';
+import { getPage, makePaginationButtons, PAGE_SIZE } from './pagination.ts';
+
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
 type __defaultedOptionGetter<O extends CommandOptions> = <K extends OptionKey<O>, D extends CommandOptionTypeT[O[K]] | undefined>(
@@ -104,7 +98,6 @@ export abstract class Command<O extends CommandOptions> {
 	 */
 	// TODO: refactor so this takes a single object that can be split out for the different params (so i can add stuff to it without breaking thigns)
 	//  object needs to have a way to submit stuff to be awaited after we return a response.
-	//  also try add first class pagination support - probably by having it return a Promise<Component[]> (may need an | in there, so Promise<Component[] | InteractionResponse>)
 	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<Component[]>;
 
 	/**
@@ -126,28 +119,11 @@ export abstract class Command<O extends CommandOptions> {
 					(allComponents) => {
 						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
 
-						const initialResponse: Component[] = [];
-						let responseCount = 0;
-						// we use 4 components for the buttons
-						const space = MAX_COMPONENTS - 4;
-						for (const component of allComponents) {
-							const count = component.count();
-							console.log(responseCount);
-							if (responseCount + count <= space) {
-								initialResponse.push(component);
-								responseCount += count;
-							}
-							else break;
-						}
+						const initialResponse: Component[] = getPage(allComponents, 1);
 
 						if (initialResponse.length != allComponents.length) {
 							// add pagination if needed
-							initialResponse.push(
-								new ActionRowComponent([
-									new ActionButtonComponent('<', ButtonStyle.SECONDARY, `<-${this.name}-${int.id}`),
-									new ActionButtonComponent('>', ButtonStyle.SECONDARY, `>-${this.name}-${int.id}`),
-								]),
-							);
+							initialResponse.push(makePaginationButtons(this.name, int.id, 1));
 						}
 						// save the results in the cache
 						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
