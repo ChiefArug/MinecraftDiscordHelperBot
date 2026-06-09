@@ -1,15 +1,23 @@
-import { type CommandInteraction, type CommandOption, type CommandOptions, CommandOptionType, type CommandOptionTypeT, InteractionContextType } from './discord.ts';
+import {
+	ButtonStyle,
+	type CommandInteraction,
+	type CommandOption,
+	type CommandOptions,
+	CommandOptionType,
+	type CommandOptionTypeT,
+	InteractionContextType,
+} from './discord.ts';
 
-import { AckResponse, InteractionResponse, MessageResponse } from './response.ts';
+import { AckResponse, ComponentResponse, InteractionResponse, MessageResponse } from './response.ts';
+import { ActionButtonComponent, ActionRowComponent, Component, MAX_COMPONENTS } from './component.ts';
+import { saveToCache } from './cache.ts';
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
 type __defaultedOptionGetter<O extends CommandOptions> = <K extends OptionKey<O>, D extends CommandOptionTypeT[O[K]] | undefined>(
 	option: K,
 	defaultValue: D,
 ) => CommandOptionTypeT[O[K]] | D;
-type __nullableOptionGetter<O extends CommandOptions> = <K extends OptionKey<O>>(
-	option: K,
-) => CommandOptionTypeT[O[K]] | undefined
+type __nullableOptionGetter<O extends CommandOptions> = <K extends OptionKey<O>>(option: K) => CommandOptionTypeT[O[K]] | undefined;
 
 export type OptionGetter<O extends CommandOptions> = __defaultedOptionGetter<O> & __nullableOptionGetter<O>;
 
@@ -97,7 +105,7 @@ export abstract class Command<O extends CommandOptions> {
 	// TODO: refactor so this takes a single object that can be split out for the different params (so i can add stuff to it without breaking thigns)
 	//  object needs to have a way to submit stuff to be awaited after we return a response.
 	//  also try add first class pagination support - probably by having it return a Promise<Component[]> (may need an | in there, so Promise<Component[] | InteractionResponse>)
-	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<InteractionResponse>;
+	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<Component[]>;
 
 	/**
 	 * Execute this command from the provided interaction information and environment variables
@@ -115,8 +123,36 @@ export abstract class Command<O extends CommandOptions> {
 			this.executeImpl(env, optionGetter, int.id)
 				// first stage, basic response. both success and errors edit the original message
 				.then(
-					(response) => {
-						return fetch(response.request(new URL(base + '/messages/@original'), 'PATCH'));
+					(allComponents) => {
+						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
+
+						const initialResponse: Component[] = [];
+						let responseCount = 0;
+						// we use 4 components for the buttons
+						const space = MAX_COMPONENTS - 4;
+						for (const component of allComponents) {
+							const count = component.count();
+							console.log(responseCount);
+							if (responseCount + count <= space) {
+								initialResponse.push(component);
+								responseCount += count;
+							}
+							else break;
+						}
+
+						if (initialResponse.length != allComponents.length) {
+							// add pagination if needed
+							initialResponse.push(
+								new ActionRowComponent([
+									new ActionButtonComponent('<', ButtonStyle.SECONDARY, `<-${this.name}-${int.id}`),
+									new ActionButtonComponent('>', ButtonStyle.SECONDARY, `>-${this.name}-${int.id}`),
+								]),
+							);
+						}
+						// save the results in the cache
+						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
+
+						return fetch(new ComponentResponse(initialResponse).request(new URL(base + '/messages/@original'), 'PATCH'));
 					},
 					(err) => {
 						console.error(`Error responding to request ${int.id}: ${err}, ${err.stack}`);
@@ -144,21 +180,20 @@ export abstract class Command<O extends CommandOptions> {
 				})
 				.catch((err) => {
 					console.error(
-						`Really failed to respond to request! ${int.id}, ${err}, ${int.data.name}, ${int.data.options.map((o) => o.name + ': ' + o.value)}, ${err.stack}`,
+						`Really failed to respond to request! ${int.id}, ${err}, ${int.data?.name}, ${int.data?.options?.map((o) => o.name + ': ' + o.value)}, ${err.stack}`,
 					);
 				}),
 		);
 
- 		// TODO: consider delaying this by a bit (~30s?) and sending the ack through a webhook, and changing this to the other response for when its acknowledged another way
+		// TODO: consider delaying this by a bit (~30s?) and sending the ack through a webhook, and changing this to the other response for when its acknowledged another way
 		//immediately return an ack response
 		return Promise.resolve(new AckResponse());
 	}
 }
 
-type OptionType<O extends CommandOptions, K extends OptionKey<O>> = CommandOptionTypeT[O[K]]
+type OptionType<O extends CommandOptions, K extends OptionKey<O>> = CommandOptionTypeT[O[K]];
 
 function getOptionGetter<O extends CommandOptions>(options: CommandOption<O>[], int: CommandInteraction<O>): OptionGetter<O> {
-
 	function getOption<K extends OptionKey<O>, D extends OptionType<O, K> | undefined>(name: K, def?: D): OptionType<O, K> | D;
 	function getOption<K extends OptionKey<O>, D extends OptionType<O, K> | undefined>(name: K, def?: D): OptionType<O, K> | D | undefined {
 		const optionData = int.data.options.find((o) => o.name === name);

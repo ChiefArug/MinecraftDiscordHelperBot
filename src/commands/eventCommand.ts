@@ -1,10 +1,9 @@
 import { Command, OptionGetter, StringArg } from '../lib/command.ts';
-import { ComponentResponse, InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
 import { ListEntries, regexEscape } from '../lib/util.ts';
-import { Component } from '../lib/component.ts';
+import { Component, TextComponent } from '../lib/component.ts';
 
 // language=GraphQL
 const MethodDescriptors = `query MethodDescriptors($event: String!, $loader: Loader!, $version: String!) {
@@ -66,12 +65,12 @@ export class EventCommand extends Command<Args> {
 			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, id: string): Promise<InteractionResponse> {
+	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, id: string): Promise<Component[]> {
 		const event = getOption('event');
 		const version = getOption('version');
 		const loader = getOption('modloader') as ListEntries<typeof Loaders> | undefined;
-		if (!event || !version || !loader) return new MessageResponse('event, version and modloader parameters are required!');
-		if (!(loader in Loaders)) return new MessageResponse('Unknown loader ' + loader + '. Try one of: ' + Loaders);
+		if (!event || !version || !loader) return [new TextComponent('event, version and modloader parameters are required!')];
+		if (!(loader in Loaders)) return [new TextComponent('Unknown loader ' + loader + '. Try one of: ' + Loaders)];
 
 		const predicate = `\\(${regexEscape(event)}\\)V`;
 
@@ -90,6 +89,6 @@ export class EventCommand extends Command<Args> {
 			if (mr) (mrMods[mr] ??= []).push(`[${modids}] ${loader} ${version}`);
 		}
 
-		return new ComponentResponse(components);
+		return components;
 	}
 }

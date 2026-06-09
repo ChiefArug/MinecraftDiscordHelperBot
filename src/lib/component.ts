@@ -1,5 +1,8 @@
 import { ButtonStyle, ComponentType, type PartialEmoji, type UnfurledMedia } from './discord.ts';
 
+/** The maximum number of components in a message */
+export const MAX_COMPONENTS = 40;
+
 export abstract class Component {
 	readonly type: ComponentType;
 	readonly id?: number;
@@ -7,6 +10,11 @@ export abstract class Component {
 	protected constructor(type: ComponentType, id?: number) {
 		this.type = type;
 		this.id = id;
+	}
+
+	/** @returns the number of components this count for. At least 1, may be more if it has child components */
+	public count(): number {
+		return 1;
 	}
 }
 
@@ -60,6 +68,10 @@ export class SectionComponent extends Component {
 		this.components = components;
 		this.accessory = accessory;
 	}
+
+	count(): number {
+		return super.count() + this.components.map((c) => c.count()).reduce((a, b) => a + b, 0) + this.accessory.count();
+	}
 }
 
 export class TextComponent extends Component {
@@ -84,6 +96,11 @@ export class ActionRowComponent extends Component {
 	public constructor(components: ActionRowComponentList, id?: number) {
 		super(ComponentType.ACTION_ROW, id);
 		this.components = components;
+	}
+
+	count(): number {
+		// button components have count 1, so we don't need to do more than this
+		return super.count() + this.components.length;
 	}
 }
 
@@ -126,6 +143,10 @@ export class ContainerComponent extends Component {
 		this.components = components;
 		this.accent_color = accent_color;
 		this.spoiler = spoiler;
+	}
+
+	count(): number {
+		return super.count() + this.components.map(c => c.count()).reduce((a, b) => a + b, 0);
 	}
 }
 

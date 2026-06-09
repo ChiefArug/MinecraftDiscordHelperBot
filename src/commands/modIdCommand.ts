@@ -1,9 +1,9 @@
 import { CommandOptionType } from '../lib/discord.ts';
-import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 import { query } from '../waifu.ts';
 import { mrModInfos } from '../modrinth.ts';
+import { Component, TextComponent } from '../lib/component.ts';
 
 // language=GraphQL
 const ModId = `query ModId($predicate: StringPredicate) {
@@ -45,10 +45,10 @@ export class ModIdCommand extends Command<Args> {
 			},
 		});
 	}
-	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, id: string): Promise<InteractionResponse> {
+	protected async executeImpl(env: Env, getOption: OptionGetter<Args>, id: string): Promise<Component[]> {
 		const regex = getOption('regex', false);
 		const modid = getOption('modid');
-		if (!modid) return new MessageResponse('modid parameter is required!');
+		if (!modid) return [new TextComponent('modid parameter is required!')];
 
 		const predicate = regex ? { matches: modid } : { equals: modid };
 
@@ -68,7 +68,7 @@ export class ModIdCommand extends Command<Args> {
 		}
 
 		if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
-			return new MessageResponse(`No mods found with modid ${modid}`);
+			return [new TextComponent(`No mods found with modid ${modid}`)];
 
 		const wrap = <T extends string | number>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
 			return Object.entries(values)
@@ -85,6 +85,6 @@ export class ModIdCommand extends Command<Args> {
 			: '';
 
 		//TODO: replace with nice components
-		return new MessageResponse(`Mods found: \nModrinth: ${modrinthInfos}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`);
+		return [new TextComponent(`Mods found: \nModrinth: ${modrinthInfos}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`)];
 	}
 }

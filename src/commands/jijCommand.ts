@@ -1,9 +1,9 @@
 import { CommandOptionType } from '../lib/discord.ts';
-import { InteractionResponse, MessageResponse } from '../lib/response.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion, Loader, NestedArtifact } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
 import { regexEscape } from '../lib/util.ts';
+import { Component, TextComponent } from '../lib/component.ts';
 
 // language=GraphQL
 export const JIJ = `query JIJ($predicate: StringPredicate) {
@@ -50,9 +50,9 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 		env: Env,
 		getOption: OptionGetter<StringArg<'locator'> & BoolArg<'regex'>>,
 		id: string,
-	): Promise<InteractionResponse> {
+	): Promise<Component[]> {
 		const locator = getOption('locator');
-		if (!locator) return new MessageResponse('locator parameter is required!');
+		if (!locator) return [new TextComponent('locator parameter is required!')];
 
 		const regex = getOption('regex', false);
 		// The method works both locally and on workers, it's just not recognised.
@@ -82,7 +82,7 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 		}
 
 		if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
-			return new MessageResponse(`No mods found containing a jij matching ${locator}`);
+			return [new TextComponent(`No mods found containing a jij matching ${locator}`)];
 
 		const wrap = <T extends string | number>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
 			return Object.entries(values)
@@ -92,8 +92,10 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 				.join('\n');
 		};
 
-		return new MessageResponse(
-			`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
-		);
+		return [
+			new TextComponent(
+				`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
+			),
+		];
 	}
 }
