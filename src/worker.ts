@@ -60,18 +60,18 @@ export default {
 					}
 					case InteractionType.MESSAGE_COMPONENT: {
 						const { component_type, custom_id } = message.data;
-						if (component_type !== ComponentType.BUTTON) return new Response('Unknown component type', { status: 501 })
+						if (component_type !== ComponentType.BUTTON) return new Response('Unknown component type', { status: 501 });
 
 						const parts = custom_id.split('-');
 						if (parts.length != 5) return new MessageResponse('Unrecognised button').response();
-						if (parts.some(p => p === undefined)) return new MessageResponse("Malformed button!").response();
+						if (parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!').response();
 
 						const [mode, commandName, id, stringPage, stringMaxPage] = parts;
-						if (mode !== '<' && mode !== '>') return new MessageResponse("Malformed mode").response();
+						if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode').response();
 
 						const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
 						const maxPage = Number(stringMaxPage);
-						if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse("Malformed page number").response();
+						if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse('Malformed page number').response();
 
 						const command = COMMANDS[commandName];
 						if (!command) return new MessageResponse('Command not recognised.').response();
@@ -84,14 +84,13 @@ export default {
 						const components = cache as Component[];
 						const collected = getPage(components, page);
 
-						if (collected.length === 0) return new MessageResponse("Invalid page number").response();
-
+						if (collected.length === 0) return new MessageResponse('Invalid page number').response();
+						// TODO: the middle button should open a modal to select page, or collapse to a single entry and remove pagination.
 						return new ComponentResponse(
 							[...collected, makePaginationButtons(commandName, id, page, maxPage)],
 							InteractionResponseType.UPDATE_MESSAGE,
 						).response();
 					}
-					// TODO: selector component as part of pagintion buttons to choose a single thing to show
 					default: {
 						console.warn(`Unknown interaction type ${message.type}`);
 						return new Response('Unknown interaction type', { status: 501 });

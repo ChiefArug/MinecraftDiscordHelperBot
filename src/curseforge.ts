@@ -22,6 +22,8 @@ export const cfModInfo = async (id: number): Promise<{data: CurseForgeProject}> 
 };
 
 export const cfModInfos = async (ids: number[]): Promise<{data: CurseForgeProject[]}> => {
+	if (ids.length === 0) return {data: []};
+
 	return await fetch(URL + `mods/`, {
 		method: 'POST',
 		headers: {

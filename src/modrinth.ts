@@ -18,6 +18,7 @@ export const mrModInfo = async (id: string): Promise<ModrinthProject> => {
 };
 
 export const mrModInfos = async (ids: string[]): Promise<ModrinthProject[]> => {
+	if (ids.length === 0) return [];
 	return await fetch(URL + `projects?ids=["${ids.join('","')}"]`)
 		.then(checkSuccess('Modrinth'))
 		.then((res) => res.json());

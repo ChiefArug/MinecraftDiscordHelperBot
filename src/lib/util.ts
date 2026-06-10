@@ -44,6 +44,36 @@ export const checkSuccess = (name: string): (res: Response) => Promise<Response>
 
 export const isNotUndefined = (t: any) => t !== undefined
 
+// TODO: expand this with more realistic data
+// must have prime length
+const toCheck = [
+	'stu', 'b60bc5b6-d5fc-49ab-8bc5-b6d5fc09abe3', 'ghi',	'def',
+	'ghjserhtbh', 'vw', 'chiefarug/mods/stuff', 'f23v.fwef3f',
+	'pqr', 'WAIFU', '6789', 'sfsdgsdgg', 'jkl', 'chiefarug',	'abc',
+	'45', 'waifu_bot',	'waifu',	'28ru23frf',	'xyz',	'rick',
+	'c521dbfa30654ae60f959e6b457740f0',	'mno',	'cw/2dwefsdfsf/', '0123',
+];
+let check = 0;
+/**
+ * Checks if a regex matches a suspicious number of strings.
+ * @param r The regex to test
+ * @returns If the regex matches at least two randomly selected strings out of five
+ */
+export const isRegexSafe = (r: RegExp): boolean => {
+	let failed = false;
+	for (let i = 0; i < 5; i++) {
+		check += 7;
+		check %= toCheck.length;
+		const target = toCheck[check];
+		if (r.test(target)) {
+			if (failed)
+				return false;
+			failed = true;
+		}
+	}
+	return true;
+}
+
 /** [curseforge, modrinth] */
 export type ModKey = [number | undefined, string | undefined]
 export type ModInfo = {
@@ -154,5 +184,9 @@ export class ModMap {
 			set.add(value);
 		}
 		return [...set]
+	}
+
+	isEmpty() {
+		return this.cfMods.size === 0 && this.mrMods.size === 0;
 	}
 }
