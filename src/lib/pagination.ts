@@ -4,17 +4,26 @@ import { ButtonStyle } from './discord.ts';
 /** The maximum number of components per page, with 4 components available for pagination */
 export const PAGE_SIZE = MAX_COMPONENTS - 4;
 
-
-// TODO: disable buttons if last/first page.
-//  probably requires incorporating this into getPage.
-export const makePaginationButtons = (commandName: string, interactionId: string, curPage: number) =>  new ActionRowComponent([
-	new ActionButtonComponent('<', ButtonStyle.SECONDARY, `<-${commandName}-${interactionId}-${curPage}`),
-	new ActionButtonComponent('>', ButtonStyle.SECONDARY, `>-${commandName}-${interactionId}-${curPage}`),
-])
+export const makePaginationButtons = (commandName: string, interactionId: string, curPage: number, maxPages: number) => {
+	let left = new ActionButtonComponent(
+		'❮',
+		ButtonStyle.SECONDARY,
+		`<-${commandName}-${interactionId}-${curPage}-${maxPages}`,
+		curPage == 1,
+	);
+	let middle = new ActionButtonComponent(`${curPage}/${maxPages}`, ButtonStyle.SECONDARY, `${commandName}-${maxPages}`, true);
+	let right = new ActionButtonComponent(
+		'❯',
+		ButtonStyle.SECONDARY,
+		`>-${commandName}-${interactionId}-${curPage}-${maxPages}`,
+		curPage == maxPages,
+	);
+	return new ActionRowComponent([left, middle, right]);
+};
 
 /**
  * Gets a pages worth of components
- * @param components The component (or component-like) to pull from
+ * @param components The component (or component-like) list to pull from
  * @param page The page number to get.
  * @returns The array of components for the specified page. If the page is not valid (ie less than 1 or greater than the required pages for the provided components) then will be an empty array.
  */
@@ -44,4 +53,26 @@ export const getPage = (components: Component[], page: number): Component[] => {
 		}
 	}
 	return collected;
-}
+};
+
+/**
+ * Counts how many pages the provided set of components will take up
+ * @param components The component (or component-like) list to count
+ * @returns The total number of pages required to display all components
+ */
+export const countPages = (components: Component[]): number => {
+	let curPageSize = 0;
+	let curPage = 1;
+
+	for (let i = 0; i < components.length; i++) {
+		const component = components[i];
+		const count = countComponents(component);
+		if (curPageSize + count <= PAGE_SIZE) {
+			curPageSize += count;
+		} else {
+			curPage++;
+			curPageSize = 0;
+		}
+	}
+	return curPage;
+};

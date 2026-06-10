@@ -7,9 +7,10 @@ import { QueryCommand } from './commands/queryCommand.ts';
 import { PingCommand } from './commands/pingCommand.ts';
 import { ClassCommand } from './commands/classCommand.ts';
 import { test } from './modrinth.ts';
-import { LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './lib/component.ts';
+import { ContainerComponent, LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './lib/component.ts';
 import { MODRINTH } from './lib/emoji.ts';
 import { cacheString } from './lib/cache.ts';
+import { makePaginationButtons } from './lib/pagination.ts';
 
 
 /*
@@ -29,7 +30,7 @@ const __commands = {
 
 		const maybeCached = await cacheString(() => Promise.resolve(rand), 'random');
 
-		return new ComponentResponse([
+		return [new ContainerComponent([
 			new TextComponent('Here are some modrinth stats!'),
 			new SectionComponent(
 				[
@@ -44,8 +45,9 @@ const __commands = {
 				new LinkButtonComponent('https://modrinth.com/auth/sign-up', 'Sign Up', MODRINTH),
 			),
 			new TextComponent(`Today's random number: ${maybeCached}!`),
-			new TextComponent(`Now's random number: ${rand}!`)
-		]);
+			new TextComponent(`Now's random number: ${rand}!`),
+			makePaginationButtons('test1', 'no', 3, 10),
+		])];
 	}),
 	modid: new ModIdCommand('modid', 'Look up information about a particular Mod ID'),
 	query: new QueryCommand('query', 'Run the query passed in as a string'),

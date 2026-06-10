@@ -3,7 +3,7 @@ import { type CommandInteraction, type CommandOption, type CommandOptions, Comma
 import { AckResponse, ComponentResponse, InteractionResponse, MessageResponse } from './response.ts';
 import { Component } from './component.ts';
 import { saveToCache } from './cache.ts';
-import { getPage, makePaginationButtons, PAGE_SIZE } from './pagination.ts';
+import { countPages, getPage, makePaginationButtons, PAGE_SIZE } from './pagination.ts';
 
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
@@ -120,10 +120,11 @@ export abstract class Command<O extends CommandOptions> {
 						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
 
 						const initialResponse: Component[] = getPage(allComponents, 1);
+						const maxPage = countPages(allComponents);
 
 						if (initialResponse.length != allComponents.length) {
 							// add pagination if needed
-							initialResponse.push(makePaginationButtons(this.name, int.id, 1));
+							initialResponse.push(makePaginationButtons(this.name, int.id, 1, maxPage));
 						}
 						// save the results in the cache
 						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));

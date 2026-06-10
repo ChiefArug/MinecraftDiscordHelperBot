@@ -63,14 +63,15 @@ export default {
 						if (component_type !== ComponentType.BUTTON) return new Response('Unknown component type', { status: 501 })
 
 						const parts = custom_id.split('-');
-						if (parts.length != 4) return new MessageResponse('Unrecognised button').response();
+						if (parts.length != 5) return new MessageResponse('Unrecognised button').response();
 						if (parts.some(p => p === undefined)) return new MessageResponse("Malformed button!").response();
 
-						const [mode, commandName, id, stringPage] = parts;
+						const [mode, commandName, id, stringPage, stringMaxPage] = parts;
 						if (mode !== '<' && mode !== '>') return new MessageResponse("Malformed mode").response();
 
 						const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
-						if (Number.isNaN(page)) return new MessageResponse("Malformed page number").response();
+						const maxPage = Number(stringMaxPage);
+						if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse("Malformed page number").response();
 
 						const command = COMMANDS[commandName];
 						if (!command) return new MessageResponse('Command not recognised.').response();
@@ -86,7 +87,7 @@ export default {
 						if (collected.length === 0) return new MessageResponse("Invalid page number").response();
 
 						return new ComponentResponse(
-							[...collected, makePaginationButtons(commandName, id, page)],
+							[...collected, makePaginationButtons(commandName, id, page, maxPage)],
 							InteractionResponseType.UPDATE_MESSAGE,
 						).response();
 					}
