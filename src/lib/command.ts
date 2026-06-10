@@ -125,9 +125,9 @@ export abstract class Command<O extends CommandOptions> {
 						if (initialResponse.length != allComponents.length) {
 							// add pagination if needed
 							initialResponse.push(makePaginationButtons(this.name, int.id, 1, maxPage));
+							// save the results in the cache, we will need them later.
+							ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
 						}
-						// save the results in the cache
-						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
 
 						return fetch(new ComponentResponse(initialResponse).request(new URL(base + '/messages/@original'), 'PATCH'));
 					},
