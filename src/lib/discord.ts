@@ -96,50 +96,6 @@ export const CommandType = {
 };
 export type CommandType = (typeof CommandType)[keyof typeof CommandType];
 
-type BaseInteraction = {
-	id: Snowflake;
-	application_id: Snowflake;
-	type: InteractionType;
-	token: string;
-	message: Message;
-};
-
-export type PingInteraction = { type: InteractionType.PING } & BaseInteraction;
-export type CommandInteraction<O extends CommandOptions> = {
-	type: InteractionType.APPLICATION_COMMAND;
-	data: {
-		id: Snowflake;
-		name: CommandName;
-		type: CommandType;
-		options: CommandOptionData<O, any>[];
-		resolved?: ResolvedData;
-	};
-} & BaseInteraction;
-type InteractiveComponentType =
-	| typeof ComponentType.BUTTON
-	| typeof ComponentType.STRING_SELECT
-	| typeof ComponentType.USER_SELECT
-	| typeof ComponentType.ROLE_SELECT
-	| typeof ComponentType.MENTIONABLE_SELECT
-	| typeof ComponentType.CHANNEL_SELECT;
-export type ComponentInteraction = {
-	type: InteractionType.MESSAGE_COMPONENT;
-	data: {
-		component_type: InteractiveComponentType;
-		id: number;
-		custom_id: string;
-	};
-} & BaseInteraction;
-export type ModalInteraction = {
-	type: InteractionType.MODAL_SUBMIT;
-	data: {
-		custom_id: string;
-		components: ComponentResponse[];
-		resolved?: ResolvedData;
-	};
-} & BaseInteraction;
-export type Interaction = PingInteraction | CommandInteraction<any> | ModalInteraction | ComponentInteraction;
-
 export const ComponentType = {
 	ACTION_ROW: 1,
 	BUTTON: 2,
@@ -165,6 +121,56 @@ export const ComponentType = {
 	CHECKBOX: 22,
 } as const;
 export type ComponentType = (typeof ComponentType)[keyof typeof ComponentType];
+
+
+type BaseInteraction = {
+	id: Snowflake;
+	application_id: Snowflake;
+	type: InteractionType;
+	token: string;
+	message: Message;
+};
+
+export type PingInteraction = { type: InteractionType.PING } & BaseInteraction;
+export type CommandInteraction<O extends CommandOptions> = {
+	type: InteractionType.APPLICATION_COMMAND;
+	data: {
+		id: Snowflake;
+		name: CommandName;
+		type: CommandType;
+		options: CommandOptionData<O, any>[];
+		resolved?: ResolvedData;
+	};
+} & BaseInteraction;
+
+
+export const InteractiveComponentType = {
+	BUTTON: ComponentType.BUTTON,
+	STRING_SELECT: ComponentType.STRING_SELECT,
+	USER_SELECT: ComponentType.USER_SELECT,
+	ROLE_SELECT: ComponentType.ROLE_SELECT,
+	MENTIONABLE_SELECT: ComponentType.MENTIONABLE_SELECT,
+	CHANNEL_SELECT: ComponentType.CHANNEL_SELECT,
+} as const;
+export type InteractiveComponentType = (typeof InteractiveComponentType)[keyof typeof InteractiveComponentType];
+
+export type ComponentInteraction = {
+	type: InteractionType.MESSAGE_COMPONENT;
+	data: {
+		component_type: InteractiveComponentType;
+		id: number;
+		custom_id: string;
+	};
+} & BaseInteraction;
+export type ModalInteraction = {
+	type: InteractionType.MODAL_SUBMIT;
+	data: {
+		custom_id: string;
+		components: ComponentResponse[];
+		resolved?: ResolvedData;
+	};
+} & BaseInteraction;
+export type Interaction = PingInteraction | CommandInteraction<any> | ModalInteraction | ComponentInteraction;
 
 export const ButtonStyle = {
 	PRIMARY: 1,

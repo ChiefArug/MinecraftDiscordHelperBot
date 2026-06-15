@@ -1,6 +1,13 @@
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
-import { CommandInteraction, ComponentInteraction, ComponentType, Interaction } from './lib/discord.ts';
-import { ComponentResponse, MessageResponse, PingResponse } from './lib/response.ts';
+import {
+	CommandInteraction,
+	ComponentInteraction,
+	ComponentType,
+	Interaction,
+	InteractiveComponentType,
+	ModalInteraction,
+} from './lib/discord.ts';
+import { ComponentResponse, InteractionResponse, MessageResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { getFromCache } from './lib/cache.ts';
@@ -40,15 +47,23 @@ export default {
 				}
 
 				const message = (await request.json()) as Interaction;
+				const response = (r: InteractionResponse) => r.response();
 				switch (message.type) {
 					case InteractionType.PING:
-						return handlePing();
+						return handlePing().response();
 					case InteractionType.APPLICATION_COMMAND:
-						return await handleCommand(message, env, ctx);
+						return await handleCommand(message, env, ctx).then(response);
 					case InteractionType.MESSAGE_COMPONENT:
-						return await handleButton(message);
+						switch (message.data.component_type) {
+							case InteractiveComponentType.BUTTON:
+								return await handleButton(message).then(response);
+							default:
+								return new Response('Unknown component type', { status: 501 });
+						}
+					case InteractionType.MODAL_SUBMIT:
+						return await handleModal(message).then(response);
 					default:
-						console.warn(`Unknown interaction type ${message.type}`);
+						console.warn(`Unknown interaction type ${(message as any).type}`);
 						return new Response('Unknown interaction type', { status: 501 });
 				}
 			}
@@ -58,54 +73,57 @@ export default {
 };
 
 
-function handlePing() {
+function handlePing(): InteractionResponse {
 	// The `PING` message is used during the initial webhook handshake, and is
 	// required to configure the webhook in the developer portal.
-	return new PingResponse().response();
+	return new PingResponse();
 }
 
-async function handleCommand(message: CommandInteraction<any>, env: Env, ctx: ExecutionContext<any>) {
+async function handleCommand(message: CommandInteraction<any>, env: Env, ctx: ExecutionContext<any>): Promise<InteractionResponse> {
 	const { name } = message.data;
 	const command = COMMANDS[name];
 
 	if (command) {
-		return (await command.execute(message, env, ctx)).response();
+		return (await command.execute(message, env, ctx));
 	} else {
 		console.warn(`Unknown command ${name}`);
-		return new MessageResponse('Command not implemented yet!').response();
+		return new MessageResponse('Command not implemented yet!');
 	}
 }
 
-async function handleButton(message: ComponentInteraction) {
-	const { component_type, custom_id } = message.data;
-	if (component_type !== ComponentType.BUTTON) return new Response('Unknown component type', { status: 501 });
+async function handleButton(message: ComponentInteraction): Promise<InteractionResponse> {
+	const { custom_id } = message.data;
 
 	const parts = custom_id.split('-');
-	if (parts.length != 5) return new MessageResponse('Unrecognised button').response();
-	if (parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!').response();
+	if (parts.length != 5) return new MessageResponse('Unrecognised button');
+	if (parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!');
 
 	const [mode, commandName, id, stringPage, stringMaxPage] = parts;
-	if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode').response();
+	if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode');
 
 	const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
 	const maxPage = Number(stringMaxPage);
-	if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse('Malformed page number').response();
+	if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse('Malformed page number');
 
 	const command = COMMANDS[commandName];
-	if (!command) return new MessageResponse('Command not recognised.').response();
+	if (!command) return new MessageResponse('Command not recognised.');
 
 	const cache = await getFromCache(`pages/${id}`);
 	// todo: edit to remove buttons?
-	if (cache === undefined) return new MessageResponse('Message cache expired').response();
-	if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted').response();
+	if (cache === undefined) return new MessageResponse('Message cache expired');
+	if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted');
 
 	const components = cache as Component[];
 	const collected = getPage(components, page);
 
-	if (collected.length === 0) return new MessageResponse('Invalid page number').response();
+	if (collected.length === 0) return new MessageResponse('Invalid page number');
 	// TODO: the middle button should open a modal to select page, or collapse to a single entry and remove pagination.
 	return new ComponentResponse(
 		[...collected, makePaginationButtons(commandName, id, page, maxPage)],
 		InteractionResponseType.UPDATE_MESSAGE,
-	).response();
+	);
+}
+
+async function handleModal(message: ModalInteraction): Promise<InteractionResponse> {
+
 }
