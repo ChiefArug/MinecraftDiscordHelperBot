@@ -7,11 +7,11 @@ import {
 	InteractiveComponentType,
 	ModalInteraction,
 } from './lib/discord.ts';
-import { ComponentResponse, InteractionResponse, MessageResponse, PingResponse } from './lib/response.ts';
+import { ComponentResponse, InteractionResponse, MessageResponse, ModalResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { getFromCache } from './lib/cache.ts';
-import { Component } from './lib/component.ts';
+import { Component, TextComponent } from './lib/component.ts';
 import { getPage, makePaginationButtons } from './lib/pagination.ts';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
@@ -95,35 +95,46 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 	const { custom_id } = message.data;
 
 	const parts = custom_id.split('-');
-	if (parts.length != 5) return new MessageResponse('Unrecognised button');
 	if (parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!');
+	switch (parts.length) {
+		case 5: {// next/prev page
+			const [mode, commandName, id, stringPage, stringMaxPage] = parts;
+			if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode');
 
-	const [mode, commandName, id, stringPage, stringMaxPage] = parts;
-	if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode');
+			const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
+			const maxPage = Number(stringMaxPage);
+			if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse('Malformed page number');
 
-	const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
-	const maxPage = Number(stringMaxPage);
-	if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse('Malformed page number');
+			const command = COMMANDS[commandName];
+			if (!command) return new MessageResponse('Command not recognised.');
 
-	const command = COMMANDS[commandName];
-	if (!command) return new MessageResponse('Command not recognised.');
+			const cache = await getFromCache(`pages/${id}`);
+			// todo: edit to remove buttons?
+			if (cache === undefined) return new MessageResponse('Message cache expired');
+			if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted');
 
-	const cache = await getFromCache(`pages/${id}`);
-	// todo: edit to remove buttons?
-	if (cache === undefined) return new MessageResponse('Message cache expired');
-	if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted');
+			const components = cache as Component[];
+			const collected = getPage(components, page);
 
-	const components = cache as Component[];
-	const collected = getPage(components, page);
-
-	if (collected.length === 0) return new MessageResponse('Invalid page number');
-	// TODO: the middle button should open a modal to select page, or collapse to a single entry and remove pagination.
-	return new ComponentResponse(
-		[...collected, makePaginationButtons(commandName, id, page, maxPage)],
-		InteractionResponseType.UPDATE_MESSAGE,
-	);
+			if (collected.length === 0) return new MessageResponse('Invalid page number');
+			// TODO: the middle button should open a modal to select page, or collapse to a single entry and remove pagination.
+			return new ComponentResponse(
+				[...collected, makePaginationButtons(commandName, id, page, maxPage)],
+				InteractionResponseType.UPDATE_MESSAGE,
+			);
+		}
+		case 2: {// 'home'
+			const [commandName, maxPages] = parts;
+			return new ModalResponse('A Modal!', 'manage_modal', [new TextComponent(`Hello from modals! ${commandName} with ${maxPages}`)])
+		}
+		default:
+			return new MessageResponse('Unknown button');
+	}
 }
 
 async function handleModal(message: ModalInteraction): Promise<InteractionResponse> {
-
+	message.data.components.forEach((component) => {
+		console.log(component);
+	})
+	return new MessageResponse('modal submitted!');
 }

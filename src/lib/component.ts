@@ -155,9 +155,15 @@ export class ContainerComponent extends Component {
 }
 
 export type StringSelectComponent = never;
+export type TextInputComponent = never;
 export type UserSelectComponent = never;
 export type RoleSelectComponent = never;
 export type MentionableSelectComponent = never;
 export type ChannelSelectComponent = never;
 export type FileComponent = never;
 export type MediaGalleryComponent = never;
+export type LabelComponent = never;
+export type FileUploadComponent = never;
+export type RadioGroupComponent = never;
+export type CheckboxGroupComponent = never;
+export type CheckboxComponent = never;

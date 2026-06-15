@@ -81,7 +81,64 @@ export type Message = {
 	id: string;
 	channel_id: string;
 };
-export type ComponentResponse = never;
+
+type ComponentResponseBase<MODAL extends boolean, TYPE extends ComponentType> = {
+	[Key in MODAL extends true ? 'type' : 'component_type']: TYPE;
+} & {
+	id: number;
+	custom_id: string;
+};
+export type StringSelectResponse<MODAL extends boolean = false> = {
+	values: string[];
+} & ComponentResponseBase<MODAL, typeof ComponentType.STRING_SELECT>
+export type TextInputResponse<MODAL extends boolean = false> = {
+	value: string
+} & ComponentResponseBase<MODAL, typeof ComponentType.TEXT_INPUT>
+export type UserSelectResponse<MODAL extends boolean = false> = {
+	resolved: ResolvedData;
+	values: Snowflake[];
+} & ComponentResponseBase<MODAL, typeof ComponentType.USER_SELECT>;
+export type RoleSelectResponse<MODAL extends boolean = false> = {
+	resolved: ResolvedData;
+	values: Snowflake[];
+} & ComponentResponseBase<MODAL, typeof ComponentType.ROLE_SELECT>;
+export type MentionableSelectResponse<MODAL extends boolean = false> = {
+	resolved: ResolvedData;
+	values: Snowflake[];
+} & ComponentResponseBase<MODAL, typeof ComponentType.MENTIONABLE_SELECT>;
+export type ChannelSelectResponse<MODAL extends boolean = false> = {
+	resolved: ResolvedData;
+	values: Snowflake[];
+} & ComponentResponseBase<MODAL, typeof ComponentType.CHANNEL_SELECT>;
+export type TextDisplayResponse<MODAL extends boolean = false> = ComponentResponseBase<MODAL, typeof ComponentType.TEXT_DISPLAY>
+export type LabelResponse<MODAL extends boolean = false> = {
+	component: TextInputResponse | StringSelectResponse | UserSelectResponse | RoleSelectResponse | MentionableSelectResponse | ChannelSelectResponse | FileUploadResponse | RadioGroupResponse | CheckboxGroupResponse | CheckboxResponse; // technically more strict than this.
+} & ComponentResponseBase<MODAL, typeof ComponentType.LABEL>
+export type FileUploadResponse<MODAL extends boolean = false> = {
+	value: Snowflake[];
+} & ComponentResponseBase<MODAL, typeof ComponentType.FILE_UPLOAD>
+export type RadioGroupResponse<MODAL extends boolean = false> = {
+	value: string | null;
+} & ComponentResponseBase<MODAL, typeof ComponentType.RADIO_GROUP>
+export type CheckboxGroupResponse<MODAL extends boolean = false> = {
+	values: string[]
+} & ComponentResponseBase<MODAL, typeof ComponentType.CHECKBOX_GROUP>
+export type CheckboxResponse<MODAL extends boolean = false> = {
+	value: boolean;
+} & ComponentResponseBase<MODAL, typeof ComponentType.CHECKBOX>
+export type ComponentResponse = StringSelectResponse |
+TextInputResponse |
+UserSelectResponse |
+RoleSelectResponse |
+MentionableSelectResponse |
+ChannelSelectResponse |
+TextDisplayResponse |
+LabelResponse |
+FileUploadResponse |
+RadioGroupResponse |
+CheckboxGroupResponse |
+CheckboxResponse;
+
 export type ResolvedData = never;
 
 export const CommandType = {
@@ -162,11 +219,25 @@ export type ComponentInteraction = {
 		custom_id: string;
 	};
 } & BaseInteraction;
+
+type ModalComponentResponse =
+	| StringSelectResponse<true>
+	| TextInputResponse<true>
+	| UserSelectResponse<true>
+	| RoleSelectResponse<true>
+	| MentionableSelectResponse<true>
+	| ChannelSelectResponse<true>
+	| TextDisplayResponse<true>
+	| LabelResponse<true>
+	| FileUploadResponse<true>
+	| RadioGroupResponse<true>
+	| CheckboxGroupResponse<true>
+	| CheckboxResponse<true>;
 export type ModalInteraction = {
 	type: InteractionType.MODAL_SUBMIT;
 	data: {
 		custom_id: string;
-		components: ComponentResponse[];
+		components: ModalComponentResponse[];
 		resolved?: ResolvedData;
 	};
 } & BaseInteraction;

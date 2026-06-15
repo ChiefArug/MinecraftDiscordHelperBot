@@ -1,5 +1,27 @@
-import { InteractionResponseType } from 'discord-interactions';
-import { Component } from './component.ts';
+import { InteractionResponseType, Separator } from 'discord-interactions';
+import {
+	ActionRowComponent,
+	ButtonComponent,
+	ChannelSelectComponent,
+	CheckboxComponent,
+	CheckboxGroupComponent,
+	Component,
+	ContainerComponent,
+	FileComponent,
+	FileUploadComponent,
+	LabelComponent,
+	MediaGalleryComponent,
+	MentionableSelectComponent,
+	RadioGroupComponent,
+	RoleSelectComponent,
+	SectionComponent,
+	SeparatorComponent,
+	StringSelectComponent,
+	TextComponent,
+	TextInputComponent,
+	ThumbnailComponent,
+	UserSelectComponent,
+} from './component.ts';
 
 export abstract class InteractionResponse {
 	body: { type: InteractionResponseType; data?: object };
@@ -48,8 +70,9 @@ export class MessageResponse extends InteractionResponse {
 	}
 }
 
+type MessageComponents = ActionRowComponent | ButtonComponent | StringSelectComponent | UserSelectComponent | RoleSelectComponent | MentionableSelectComponent | ChannelSelectComponent | SectionComponent | TextComponent | ThumbnailComponent | MediaGalleryComponent | FileComponent | SeparatorComponent | ContainerComponent;
 export class ComponentResponse extends InteractionResponse {
-	constructor(components: Component[], type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE | InteractionResponseType.UPDATE_MESSAGE = InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE) {
+	constructor(components: MessageComponents[], type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE | InteractionResponseType.UPDATE_MESSAGE = InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE) {
 		super({
 			type: type,
 			data: {
@@ -63,5 +86,20 @@ export class ComponentResponse extends InteractionResponse {
 export class PingResponse extends InteractionResponse {
 	constructor() {
 		super({ type: InteractionResponseType.PONG });
+	}
+}
+
+type ModalComponents = StringSelectComponent | TextInputComponent | UserSelectComponent | RoleSelectComponent | MentionableSelectComponent | ChannelSelectComponent | TextComponent | LabelComponent | FileUploadComponent | RadioGroupComponent | CheckboxGroupComponent | CheckboxComponent;
+type ModalComponentList = [ModalComponents] | [ModalComponents, ModalComponents] | [ModalComponents, ModalComponents, ModalComponents] | [ModalComponents, ModalComponents, ModalComponents, ModalComponents] | [ModalComponents, ModalComponents, ModalComponents, ModalComponents, ModalComponents];
+export class ModalResponse extends InteractionResponse {
+	constructor(title: string, custom_id: string, components: ModalComponentList) {
+		super({
+			type: InteractionResponseType.MODAL,
+			data: {
+				title,
+				custom_id,
+				components,
+			},
+		});
 	}
 }
