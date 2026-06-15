@@ -24,5 +24,10 @@
     "discord-interactions": "4.4.0",
     "node-fetch": "3.3.2",
     "prettier": "3.8.1"
+  },
+  "allowScripts": {
+    "workerd@1.20260520.1": true,
+    "esbuild@0.27.3": true,
+    "sharp@0.34.5": true
   }
 }
