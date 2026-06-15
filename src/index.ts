@@ -7,6 +7,7 @@ export default `
 	<title>ChiefArug's WAIFU Helper</title>
 	<meta name="twitter:title" content="ChiefArug's Minecraft Modding Crash Helper Bot">
 	<meta name="twitter:description" content="A helper Discord bot for querying NeoForged's WAIFU database">
+	<meta name="theme-color" content="#D88231">
 	<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='0' y='0' width='64' height='64' fill='rgb(216, 130, 49)'/%3E%3C/svg%3E%0A"/>
 	<meta name="darkreader-lock">
 </head>
