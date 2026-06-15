@@ -96,7 +96,7 @@ export class ModMap {
 	 */
 	public update(key: ModKey, version: LoaderVersion, valueGetter: () => ModInfo): (extra: string) => void {
 		const [cfId, mrId] = key;
-		// if both are present we need to do some complicate merging
+		// if both are present we need to do some complicated merging
 		if (cfId !== undefined && mrId !== undefined) {
 			const cf = this.cfMods.get(cfId);
 			const mr = this.mrMods.get(mrId);
@@ -142,6 +142,7 @@ export class ModMap {
 		} else if (cfId !== undefined) {
 			const cf = this.cfMods.get(cfId);
 			if (cf !== undefined) {
+				cf.versions.push(version);
 				return (s) => cf.extra.push(s);
 			} else {
 				const value = valueGetter();
@@ -151,6 +152,7 @@ export class ModMap {
 		} else if (mrId !== undefined) {
 			const mr = this.mrMods.get(mrId);
 			if (mr !== undefined) {
+				mr.versions.push(version);
 				return (s) => mr.extra.push(s);
 			} else {
 				const value = valueGetter();
@@ -160,7 +162,7 @@ export class ModMap {
 		} else {
 			// empty key
 			const { cfId, mrId, modid, versions, extra } = valueGetter();
-			console.error(
+			console.error( // TODO: make this use a third map based on modid (for jar-in-jars)
 				`Tried to call ModMap#update with empty key. CF: ${cfId} MR: ${mrId} modid: ${modid} versions: ${versions.map(([l, v]) => `${l}-${v}`)} extra: ${extra}`,
 			);
 			return (_) => {};
