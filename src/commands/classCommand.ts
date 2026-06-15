@@ -119,12 +119,12 @@ export class ClassCommand extends Command<Args> {
 				modInfo,
 				optionalIndex(cfMods, modInfo.cfId),
 				optionalIndex(mrMods, modInfo.mrId),
-				(extra) => {console.log(extra);
-					return 'Classes: ' +
+				(extra) =>
+					'Classes: ' +
 					first(extra, 5)
 						.map((e) => `\`${e.split('/').pop()}\``)
 						.join(', ') +
-					(extra.size > 5 ? ` and ${extra.size - 5} more` : '')},
+					(extra.size > 5 ? ` and ${extra.size - 5} more` : ''),
 			);
 		});
 	}
