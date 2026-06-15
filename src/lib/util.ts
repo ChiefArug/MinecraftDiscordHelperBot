@@ -74,6 +74,22 @@ export const isRegexSafe = (r: RegExp): boolean => {
 	return true;
 }
 
+/**
+ * Get the first n elements of an iterable efficiently
+ * @param iterable The iterable to fetch from
+ * @param n The number of elements
+ */
+export const first = <T>(iterable: Iterable<T>, n: number): T[] => {
+	const iter = iterable[Symbol.iterator]();
+	const out = [];
+	while (n > 0) {
+		const v = iter.next();
+		if (v.done) break;
+		out.push(v.value);
+	}
+	return out;
+}
+
 /** [curseforge, modrinth] */
 export type ModKey = [number | undefined, string | undefined]
 export type ModInfo = {
@@ -81,7 +97,7 @@ export type ModInfo = {
 	modid: string;
 	cfId?: number;
 	mrId?: string;
-	extra: string[];
+	extra: Set<string>;
 };
 export class ModMap {
 	private cfMods: Map<number, ModInfo> = new Map<number, ModInfo>();
@@ -107,23 +123,23 @@ export class ModMap {
 				this.cfMods.set(cfId, value);
 				this.mrMods.set(mrId, value);
 				// else if only mr is undefined, then we insert into just mr
-				return (s) => value.extra.push(s);
+				return (s) => value.extra.add(s);
 			} else if (cf !== undefined && mr === undefined) {
 				cf.versions.push(version);
 				cf.mrId = mrId;
 				this.mrMods.set(mrId, cf);
-				return (s) => cf.extra.push(s);
+				return (s) => cf.extra.add(s);
 				// ditto reverse for cf
 			} else if (cf === undefined && mr !== undefined) {
 				mr.versions.push(version);
 				mr.cfId = cfId;
 				this.cfMods.set(cfId, mr);
-				return (s) => mr.extra.push(s);
+				return (s) => mr.extra.add(s);
 			} else if (cf !== undefined && mr !== undefined) {
 				// if they are the same we can just update one and the other will update due to reference equality
 				if (cf === mr) {
 					cf.versions.push(version);
-					return (s) => cf.extra.push(s);
+					return (s) => cf.extra.add(s);
 				} else {
 					// not sure what to do here, it should be a very rare case.
 					console.error(
@@ -132,8 +148,8 @@ export class ModMap {
 					cf.versions.push(version);
 					mr.versions.push(version);
 					return (s) => {
-						cf.extra.push(s);
-						mr.extra.push(s);
+						cf.extra.add(s);
+						mr.extra.add(s);
 					};
 				}
 			}
@@ -143,21 +159,21 @@ export class ModMap {
 			const cf = this.cfMods.get(cfId);
 			if (cf !== undefined) {
 				cf.versions.push(version);
-				return (s) => cf.extra.push(s);
+				return (s) => cf.extra.add(s);
 			} else {
 				const value = valueGetter();
 				this.cfMods.set(cfId, value);
-				return (s) => value.extra.push(s);
+				return (s) => value.extra.add(s);
 			}
 		} else if (mrId !== undefined) {
 			const mr = this.mrMods.get(mrId);
 			if (mr !== undefined) {
 				mr.versions.push(version);
-				return (s) => mr.extra.push(s);
+				return (s) => mr.extra.add(s);
 			} else {
 				const value = valueGetter();
 				this.mrMods.set(mrId, value);
-				return (s) => value.extra.push(s);
+				return (s) => value.extra.add(s);
 			}
 		} else {
 			// empty key

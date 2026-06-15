@@ -22,7 +22,7 @@ export class ModInfoComponent extends ContainerComponent {
 		modInfo: ModInfo,
 		cf: CFMod | undefined,
 		mr: ModrinthProject | undefined,
-		extrasProcessor: (extra: string[]) => string = (e) => e.join(', '),
+		extrasProcessor: (extra: Set<string>) => string = (e) => [...e].join(', '),
 	) {
 		const linkButtonsComponent = getLinkComponent(cf?.slug, mr?.slug);
 		const extrasString = extrasProcessor(modInfo.extra);

@@ -2,7 +2,7 @@ import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
-import { LoaderVersion, ModKey, ModMap, isRegexSafe } from '../lib/util.ts';
+import { LoaderVersion, ModKey, ModMap, isRegexSafe, first } from '../lib/util.ts';
 import { Component, TextComponent } from '../lib/component.ts';
 import { mrModInfos } from '../modrinth.ts';
 import { cfModInfos } from '../curseforge.ts';
@@ -89,7 +89,7 @@ export class ClassCommand extends Command<Args> {
 					cfId,
 					mrId,
 					versions: [loaderVersion],
-					extra: [],
+					extra: new Set(),
 				}));
 
 				classes.forEach(({ name }) => extra(name));
@@ -118,13 +118,12 @@ export class ClassCommand extends Command<Args> {
 				modInfo,
 				optionalIndex(cfMods, modInfo.cfId),
 				optionalIndex(mrMods, modInfo.mrId),
-				(extra) =>
-					'Classes: ' +
-					extra
-						.slice(0, 5)
+				(extra) => {console.log(extra);
+					return 'Classes: ' +
+					first(extra, 5)
 						.map((e) => `\`${e.split('/').pop()}\``)
 						.join(', ') +
-					(extra.length > 5 ? ` and ${extra.length - 5} more` : ''),
+					(extra.size > 5 ? ` and ${extra.size - 5} more` : '')},
 			);
 		});
 	}
