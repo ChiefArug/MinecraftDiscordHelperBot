@@ -31,7 +31,7 @@ export class ModInfoComponent extends ContainerComponent {
 		const bodyCore = new TextComponent( // jar-in-jar assumption based on there not being an associated project.
 			(displayName ? `**${displayName}** (\`${modInfo.modid}\`)` : `**\`${modInfo.modid}\`** (Jar-in-Jar)`) + '\n' +
 						`Versions: ${modInfo.versions.map(([l, v]) => `${l}-${v}`).join(', ')}\n` +
-						`Classes: ${extrasString}`,
+						`${extrasString}`,
 		);
 		const bodyComponent = imageUrl ? new SectionComponent([bodyCore], new ThumbnailComponent(imageUrl)) : bodyCore;
 
