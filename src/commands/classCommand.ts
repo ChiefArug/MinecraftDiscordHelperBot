@@ -2,7 +2,8 @@ import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion } from '../graphql/graphql.ts';
 import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
-import { LoaderVersion, ModKey, ModMap, isRegexSafe, first } from '../lib/util.ts';
+import { LoaderVersion, isRegexSafe, first } from '../lib/util.ts';
+import { ModMap} from '../lib/modInfo.ts'
 import { Component, TextComponent } from '../lib/component.ts';
 import { mrModInfos } from '../modrinth.ts';
 import { cfModInfos } from '../curseforge.ts';
