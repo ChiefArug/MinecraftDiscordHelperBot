@@ -1,5 +1,5 @@
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
-import { ComponentType, Interaction } from './lib/discord.ts';
+import { CommandInteraction, ComponentInteraction, ComponentType, Interaction } from './lib/discord.ts';
 import { ComponentResponse, MessageResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
@@ -40,64 +40,72 @@ export default {
 				}
 
 				const message = (await request.json()) as Interaction;
-				// console.log(message);
 				switch (message.type) {
-					case InteractionType.PING: {
-						// The `PING` message is used during the initial webhook handshake, and is
-						// required to configure the webhook in the developer portal.
-						return new PingResponse().response();
-					}
-					case InteractionType.APPLICATION_COMMAND: {
-						const { name } = message.data;
-						const command = COMMANDS[name];
-
-						if (command) {
-							return (await command.execute(message, env, ctx)).response();
-						} else {
-							console.warn(`Unknown command ${name}`);
-							return new MessageResponse('Command not implemented yet!').response();
-						}
-					}
-					case InteractionType.MESSAGE_COMPONENT: {
-						const { component_type, custom_id } = message.data;
-						if (component_type !== ComponentType.BUTTON) return new Response('Unknown component type', { status: 501 });
-
-						const parts = custom_id.split('-');
-						if (parts.length != 5) return new MessageResponse('Unrecognised button').response();
-						if (parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!').response();
-
-						const [mode, commandName, id, stringPage, stringMaxPage] = parts;
-						if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode').response();
-
-						const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
-						const maxPage = Number(stringMaxPage);
-						if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse('Malformed page number').response();
-
-						const command = COMMANDS[commandName];
-						if (!command) return new MessageResponse('Command not recognised.').response();
-
-						const cache = await getFromCache(`pages/${id}`);
-						// todo: edit to remove buttons?
-						if (cache === undefined) return new MessageResponse('Message cache expired').response();
-						if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted').response();
-
-						const components = cache as Component[];
-						const collected = getPage(components, page);
-
-						if (collected.length === 0) return new MessageResponse('Invalid page number').response();
-						// TODO: the middle button should open a modal to select page, or collapse to a single entry and remove pagination.
-						return new ComponentResponse(
-							[...collected, makePaginationButtons(commandName, id, page, maxPage)],
-							InteractionResponseType.UPDATE_MESSAGE,
-						).response();
-					}
-					default: {
+					case InteractionType.PING:
+						return handlePing();
+					case InteractionType.APPLICATION_COMMAND:
+						return await handleCommand(message, env, ctx);
+					case InteractionType.MESSAGE_COMPONENT:
+						return await handleButton(message);
+					default:
 						console.warn(`Unknown interaction type ${message.type}`);
 						return new Response('Unknown interaction type', { status: 501 });
-					}
 				}
 			}
 		}
 		return new Response('Unknown method. Try GET or POST', { status: 400 });
 	},
 };
+
+
+function handlePing() {
+	// The `PING` message is used during the initial webhook handshake, and is
+	// required to configure the webhook in the developer portal.
+	return new PingResponse().response();
+}
+
+async function handleCommand(message: CommandInteraction<any>, env: Env, ctx: ExecutionContext<any>) {
+	const { name } = message.data;
+	const command = COMMANDS[name];
+
+	if (command) {
+		return (await command.execute(message, env, ctx)).response();
+	} else {
+		console.warn(`Unknown command ${name}`);
+		return new MessageResponse('Command not implemented yet!').response();
+	}
+}
+
+async function handleButton(message: ComponentInteraction) {
+	const { component_type, custom_id } = message.data;
+	if (component_type !== ComponentType.BUTTON) return new Response('Unknown component type', { status: 501 });
+
+	const parts = custom_id.split('-');
+	if (parts.length != 5) return new MessageResponse('Unrecognised button').response();
+	if (parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!').response();
+
+	const [mode, commandName, id, stringPage, stringMaxPage] = parts;
+	if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode').response();
+
+	const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
+	const maxPage = Number(stringMaxPage);
+	if (Number.isNaN(page) || Number.isNaN(maxPage)) return new MessageResponse('Malformed page number').response();
+
+	const command = COMMANDS[commandName];
+	if (!command) return new MessageResponse('Command not recognised.').response();
+
+	const cache = await getFromCache(`pages/${id}`);
+	// todo: edit to remove buttons?
+	if (cache === undefined) return new MessageResponse('Message cache expired').response();
+	if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted').response();
+
+	const components = cache as Component[];
+	const collected = getPage(components, page);
+
+	if (collected.length === 0) return new MessageResponse('Invalid page number').response();
+	// TODO: the middle button should open a modal to select page, or collapse to a single entry and remove pagination.
+	return new ComponentResponse(
+		[...collected, makePaginationButtons(commandName, id, page, maxPage)],
+		InteractionResponseType.UPDATE_MESSAGE,
+	).response();
+}
