@@ -8,9 +8,9 @@ import { CURSEFORGE, MODRINTH } from './emoji.ts';
 function getLinkComponent(cfSlug: string | undefined, mrSlug: string | undefined): Component[] {
 	const cfLink =
 		cfSlug !== undefined
-			? new LinkButtonComponent(`https://www.curseforge.com/minecraft/mc-mods/${cfSlug}`, 'CurseForge', CURSEFORGE)
+			? new LinkButtonComponent(`https://www.curseforge.com/minecraft/mc-mods/${cfSlug}`, '', CURSEFORGE)
 			: undefined;
-	const mrLink = mrSlug !== undefined ? new LinkButtonComponent(`https://modrinth.com/mod/${mrSlug}`, 'Modrinth', MODRINTH) : undefined;
+	const mrLink = mrSlug !== undefined ? new LinkButtonComponent(`https://modrinth.com/mod/${mrSlug}`, '', MODRINTH) : undefined;
 	const linkButtons: [] | [LinkButtonComponent] | [LinkButtonComponent, LinkButtonComponent] =
 		cfLink && mrLink ? [cfLink, mrLink] : cfLink ? [cfLink] : mrLink ? [mrLink] : [];
 
@@ -28,8 +28,7 @@ export class ModInfoComponent extends ContainerComponent {
 		const extrasString = extrasProcessor(modInfo.extra);
 		const imageUrl: string | undefined = cf?.logo?.url ?? mr?.icon_url;
 		const bodyCore = new TextComponent(
-			`### ${cf?.name ?? mr?.title ?? 'Unknown'}\n` +
-				`-# ${modInfo.modid}\n` +
+			`**${cf?.name ?? mr?.title ?? 'Unknown'}** (\`${modInfo.modid}\`)\n` +
 				`Versions: ${modInfo.versions.map(([l, v]) => `${l}-${v}`).join(', ')}\n` +
 				`Classes: ${extrasString}`,
 		);
