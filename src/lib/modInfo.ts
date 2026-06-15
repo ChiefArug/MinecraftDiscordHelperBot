@@ -12,15 +12,17 @@ export type ModInfo = {
 export class ModMap {
 	private cfMods: Map<number, ModInfo> = new Map<number, ModInfo>();
 	private mrMods: Map<string, ModInfo> = new Map<string, ModInfo>();
+	private jiJars: Map<string, ModInfo> = new Map<string, ModInfo>();
 
 	/**
 	 * Update the map with a new mod and associated version
 	 * @param key The key of the mod, formatted
 	 * @param version The version to be added
+	 * @param modid The primary modid of the mod
 	 * @param valueGetter A supplier for the modinfo to be newly inserted. This should pre-contain the current version and cf/mr ids (except the extra property), as those will not be added by the map.
 	 * @returns A consumer for adding more data to the extras property.
 	 */
-	public update(key: ModKey, version: LoaderVersion, valueGetter: () => ModInfo): (extra: string) => void {
+	public update(key: ModKey, version: LoaderVersion, modid: string, valueGetter: () => ModInfo): (extra: string) => void {
 		const [cfId, mrId] = key;
 		// if both are present we need to do some complicated merging
 		if (cfId !== undefined && mrId !== undefined) {
@@ -87,12 +89,15 @@ export class ModMap {
 			}
 		} else {
 			// empty key
-			const { cfId, mrId, modid, versions, extra } = valueGetter();
-			console.error(
-				// TODO: make this use a third map based on modid (for jar-in-jars)
-				`Tried to call ModMap#update with empty key. CF: ${cfId} MR: ${mrId} modid: ${modid} versions: ${versions.map(([l, v]) => `${l}-${v}`)} extra: ${extra}`,
-			);
-			return (_) => {};
+			const current = this.jiJars.get(modid);
+			if (current === undefined) {
+				const value = valueGetter();
+				this.jiJars.set(modid, value);
+				return (s) => value.extra.add(s);
+			} else {
+				current.versions.push(version);
+				return (s) => current.extra.add(s);
+			}
 		}
 	}
 
@@ -110,6 +115,9 @@ export class ModMap {
 			set.add(value);
 		}
 		for (const value of this.mrMods.values()) {
+			set.add(value);
+		}
+		for (const value of this.jiJars.values()) {
 			set.add(value);
 		}
 		return [...set];

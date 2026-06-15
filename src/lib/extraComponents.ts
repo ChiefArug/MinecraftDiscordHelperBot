@@ -1,8 +1,8 @@
 import { ActionRowComponent, Component, ContainerComponent, LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './component.ts';
-import { ModInfo } from './util.ts';
 import { CFMod } from './cfTypes.ts';
 import { ModrinthProject } from '../modrinth.ts';
 import { CURSEFORGE, MODRINTH } from './emoji.ts';
+import { ModInfo } from './modInfo.ts';
 
 
 function getLinkComponent(cfSlug: string | undefined, mrSlug: string | undefined): Component[] {
@@ -27,10 +27,11 @@ export class ModInfoComponent extends ContainerComponent {
 		const linkButtonsComponent = getLinkComponent(cf?.slug, mr?.slug);
 		const extrasString = extrasProcessor(modInfo.extra);
 		const imageUrl: string | undefined = cf?.logo?.url ?? mr?.icon_url;
-		const bodyCore = new TextComponent(
-			`**${cf?.name ?? mr?.title ?? 'Unknown'}** (\`${modInfo.modid}\`)\n` +
-				`Versions: ${modInfo.versions.map(([l, v]) => `${l}-${v}`).join(', ')}\n` +
-				`Classes: ${extrasString}`,
+		const displayName = cf?.name ?? mr?.title;
+		const bodyCore = new TextComponent( // jar-in-jar assumption based on there not being an associated project.
+			(displayName ? `**${displayName}** (\`${modInfo.modid}\`)` : `**\`${modInfo.modid}\`** (Jar-in-Jar)`) + '\n' +
+						`Versions: ${modInfo.versions.map(([l, v]) => `${l}-${v}`).join(', ')}\n` +
+						`Classes: ${extrasString}`,
 		);
 		const bodyComponent = imageUrl ? new SectionComponent([bodyCore], new ThumbnailComponent(imageUrl)) : bodyCore;
 

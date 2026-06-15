@@ -85,7 +85,7 @@ export class ClassCommand extends Command<Args> {
 				// ignore anything but the primary modid
 				const modid = node.modIds?.[0] ?? node.name;
 
-				let extra = mods.update([cfId, mrId], loaderVersion, () => ({
+				let extra = mods.update([cfId, mrId], loaderVersion, modid, () => ({
 					modid,
 					cfId,
 					mrId,
