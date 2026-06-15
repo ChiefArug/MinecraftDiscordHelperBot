@@ -86,6 +86,7 @@ export const first = <T>(iterable: Iterable<T>, n: number): T[] => {
 		const v = iter.next();
 		if (v.done) break;
 		out.push(v.value);
+		n--;
 	}
 	return out;
 }
