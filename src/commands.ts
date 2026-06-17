@@ -1,5 +1,4 @@
 import { Command } from './lib/command.ts';
-import { ComponentResponse } from './lib/response.ts';
 import { ModIdCommand } from './commands/modIdCommand.ts';
 import { AnonymousCommand } from './commands/anonymousCommand.ts';
 import { JijCommand } from './commands/jijCommand.ts';
@@ -30,7 +29,7 @@ const __commands = {
 
 		const maybeCached = await cacheString(() => Promise.resolve(rand), 'random');
 
-		return [new ContainerComponent([
+		return {components: [new ContainerComponent([
 			new TextComponent('Here are some modrinth stats!'),
 			new SectionComponent(
 				[
@@ -47,7 +46,7 @@ const __commands = {
 			new TextComponent(`Today's random number: ${maybeCached}!`),
 			new TextComponent(`Now's random number: ${rand}!`),
 			makePaginationButtons('test1', 'no', 3, 10),
-		])];
+		])]};
 	}),
 	modid: new ModIdCommand('modid', 'Look up information about a particular Mod ID'),
 	query: new QueryCommand('query', 'Run the query passed in as a string'),

@@ -1,4 +1,8 @@
 import { LoaderVersion } from './util.ts';
+import { PartialEmoji } from './discord.ts';
+import { ModrinthProject } from '../modrinth.ts';
+import { CFMod } from './cfTypes.ts';
+import { CURSEFORGE, GITHUB, MODRINTH } from './emoji.ts';
 
 /** [curseforge, modrinth] */
 export type ModKey = [number | undefined, string | undefined];
@@ -9,6 +13,51 @@ export type ModInfo = {
 	mrId?: string;
 	extra: Set<string>;
 };
+export type FilledModInfo = ModInfo & {
+	displayName?: string;
+	links: Record<string, PartialEmoji>;
+	imageUrl?: string;
+}
+
+/**
+ * Fill the provided modInfo with additional data from CurseForge and/or Modrinth
+ * @param modInfo The base mod information
+ * @param cf Information about this mod from CurseForge
+ * @param mr Information about this mod from Modrinth
+ */
+export function fillModInfo(modInfo: ModInfo, cf?: CFMod, mr?: ModrinthProject): FilledModInfo {
+	const links: Record<string, PartialEmoji> = {};
+	if (cf?.slug !== undefined) links[`https://www.curseforge.com/minecraft/mc-mods/${cf?.slug}`] = CURSEFORGE;
+	if (mr?.slug !== undefined) links[`https://modrinth.com/mod/${mr?.slug}`] = MODRINTH;
+	const ghSlug = findGithubSlug(cf, mr);
+	if (ghSlug !== undefined) links[`https://github.com/${ghSlug}`] = GITHUB;
+
+	return Object.assign(modInfo, {
+		displayName: cf?.name ?? mr?.title,
+		links: links,
+		imageUrl: cf?.logo.url ?? mr?.icon_url,
+	});
+}
+
+const githubRegex = new RegExp('https://(?:www\.)?github.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)(?:/.*)?', '');
+function findGithubSlug(cf?: CFMod, mr?: ModrinthProject) {
+	const all = [
+		cf?.links.issuesUrl ?? undefined,
+		cf?.links.sourceUrl ?? undefined,
+		mr?.issues_url ?? undefined,
+		mr?.source_url ?? undefined,
+		mr?.wiki_url ?? undefined,
+	];
+	for (const url of all) {
+		if (url === undefined) continue;
+		const match = url.match(githubRegex);
+		if (match === null) continue;
+		const slug = match[1];
+		if (slug === undefined) continue;
+		return slug;
+	}
+}
+
 export class ModMap {
 	private cfMods: Map<number, ModInfo> = new Map<number, ModInfo>();
 	private mrMods: Map<string, ModInfo> = new Map<string, ModInfo>();

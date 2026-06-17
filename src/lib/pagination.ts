@@ -12,7 +12,7 @@ export const makePaginationButtons = (commandName: string, interactionId: string
 		curPage == 1,
 	);
 	// TODO: add interaction id to the button for responses, and actually handle responses
-	let middle = new ActionButtonComponent(`${curPage}/${maxPages}`, ButtonStyle.SECONDARY, `${commandName}-${maxPages}`);
+	let middle = new ActionButtonComponent(`${curPage}/${maxPages}`, ButtonStyle.SECONDARY, `—-${commandName}-${interactionId}-${maxPages}`);
 	let right = new ActionButtonComponent(
 		'❯',
 		ButtonStyle.SECONDARY,

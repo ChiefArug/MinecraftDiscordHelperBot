@@ -1,5 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { COMMANDS } from './commands.ts';
+export const THEME_COLOUR = '#D88231';
+export const THEME_COLOUR_DEC = parseInt(THEME_COLOUR.slice(1), 16);
 export default `
 
 <!DOCTYPE html>
@@ -7,14 +9,14 @@ export default `
 	<title>ChiefArug's WAIFU Helper</title>
 	<meta name="twitter:title" content="ChiefArug's Minecraft Modding Crash Helper Bot">
 	<meta name="twitter:description" content="A helper Discord bot for querying NeoForged's WAIFU database">
-	<meta name="theme-color" content="#D88231">
-	<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='0' y='0' width='64' height='64' fill='rgb(216, 130, 49)'/%3E%3C/svg%3E%0A"/>
+	<meta name="theme-color" content="${THEME_COLOUR}">
+	<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='0' y='0' width='64' height='64' fill='${THEME_COLOUR}'/%3E%3C/svg%3E%0A"/>
 	<meta name="darkreader-lock">
 </head>
 <body>
 	<h1>ChiefArug's Minecraft Modding Crash Helper Bot</h1>
 	<p style="margin: 40px">A helper bot for querying NeoForged's WAIFU database</p>
-	<a href="https://discord.com/oauth2/authorize?client_id=${env.DISCORD_APPLICATION_ID}" target="_blank" rel="noopener" style="padding: 10px 20px; margin: 8px 4px; background-color: #d88231; border-radius: 1rem; color: #e7d9d3; text-shadow: black 0 0 2px; font-weight: 700; box-shadow: 5px 5px 10px #261709">Install</a>
+	<a href="https://discord.com/oauth2/authorize?client_id=${env.DISCORD_APPLICATION_ID}" target="_blank" rel="noopener" style="padding: 10px 20px; margin: 8px 4px; background-color: ${THEME_COLOUR}; border-radius: 1rem; color: #e7d9d3; text-shadow: black 0 0 2px; font-weight: 700; box-shadow: 5px 5px 10px #261709">Install</a>
 	<br/><br style="line-height: 5rem" />
 	<h2>Commands</h2>
 	<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: safe center">

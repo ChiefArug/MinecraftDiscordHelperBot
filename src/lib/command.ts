@@ -1,9 +1,9 @@
 import { type CommandInteraction, type CommandOption, type CommandOptions, CommandOptionType, type CommandOptionTypeT, InteractionContextType } from './discord.ts';
 
 import { AckResponse, ComponentResponse, InteractionResponse, MessageResponse } from './response.ts';
-import { Component } from './component.ts';
+import { Component, TextComponent } from './component.ts';
 import { saveToCache } from './cache.ts';
-import { countPages, getPage, makePaginationButtons, PAGE_SIZE } from './pagination.ts';
+import { countPages, getPage, makePaginationButtons } from './pagination.ts';
 
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
@@ -18,7 +18,7 @@ export type OptionGetter<O extends CommandOptions> = __defaultedOptionGetter<O> 
 export type StringArg<K extends string> = { [k in K]: typeof CommandOptionType.STRING };
 export type BoolArg<K extends string> = { [k in K]: typeof CommandOptionType.BOOLEAN };
 export type SelectionArg<K extends readonly string[]> = { [k in keyof K]: typeof CommandOptionType.STRING };
-
+export type CommandResult = {components: Component[], index?: Record<string, number>};
 /**
  * A class representing a Discord command.
  * @typeParam O Map of string keys to command types that this command accepts. Makes {@link getOption} and the command constructor completely typesafe.
@@ -92,13 +92,17 @@ export abstract class Command<O extends CommandOptions> {
 	 * @param env Environment Variables
 	 * @param getOption Helper function to get an option
 	 * @param id The unique id of this command invocation
-	 * @example
-	 * return new MessageResponse("Pong!");
+	 * @returns An object containing both the resulting components and the index of results, based on their order in {@link results}.
+	 * If the index returned is undefined then this response will not be cached.
 	 * @protected
 	 */
 	// TODO: refactor so this takes a single object that can be split out for the different params (so i can add stuff to it without breaking thigns)
 	//  object needs to have a way to submit stuff to be awaited after we return a response.
-	protected abstract executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<Component[]>;
+	protected abstract executeImpl(
+		env: Env,
+		getOption: OptionGetter<O>,
+		id: string,
+	): Promise<CommandResult>;
 
 	/**
 	 * Execute this command from the provided interaction information and environment variables
@@ -116,17 +120,17 @@ export abstract class Command<O extends CommandOptions> {
 			this.executeImpl(env, optionGetter, int.id)
 				// first stage, basic response. both success and errors edit the original message
 				.then(
-					(allComponents) => {
-						ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
+					(result) => {
+						const { index, components } = result;
+						const initialResponse: Component[] = getPage(components, 1);
+						const maxPage = countPages(components);
 
-						const initialResponse: Component[] = getPage(allComponents, 1);
-						const maxPage = countPages(allComponents);
+						// save the results in the cache, we will need them later.
+						if (index !== undefined) ctx.waitUntil(saveToCache({ index, components }, `pages/${int.id}`));
 
-						if (initialResponse.length != allComponents.length) {
+						if (initialResponse.length != components.length) {
 							// add pagination if needed
 							initialResponse.push(makePaginationButtons(this.name, int.id, 1, maxPage));
-							// save the results in the cache, we will need them later.
-							ctx.waitUntil(saveToCache(allComponents, `pages/${int.id}`));
 						}
 
 						return fetch(new ComponentResponse(initialResponse).request(new URL(base + '/messages/@original'), 'PATCH'));
@@ -185,4 +189,8 @@ function getOptionGetter<O extends CommandOptions>(options: CommandOption<O>[], 
 	}
 
 	return getOption;
+}
+
+export function basicTextResult(message: string): CommandResult {
+	return { components: [new TextComponent(message)]};
 }

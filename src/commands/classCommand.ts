@@ -1,10 +1,10 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion } from '../graphql/graphql.ts';
-import { type BoolArg, Command, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { type BoolArg, Command, CommandResult, basicTextResult, type OptionGetter, type StringArg } from '../lib/command.ts';
 import { LoaderVersion, isRegexSafe, first } from '../lib/util.ts';
-import { ModMap} from '../lib/modInfo.ts'
-import { Component, TextComponent } from '../lib/component.ts';
+import { fillModInfo, ModMap} from '../lib/modInfo.ts'
+import { TextComponent } from '../lib/component.ts';
 import { mrModInfos } from '../modrinth.ts';
 import { cfModInfos } from '../curseforge.ts';
 import { CFMod } from '../lib/cfTypes.ts';
@@ -55,20 +55,20 @@ export class ClassCommand extends Command<Args> {
 		});
 	}
 
-	protected override async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<Component[]> {
+	protected override async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<CommandResult> {
 		const className = getOption('class');
-		if (!className) return [new TextComponent('class parameter is required!')];
+		if (!className) return basicTextResult('class parameter is required!');
 
 		const regex = getOption('regex', false);
 
 		if (!regex && className.includes('.'))
-			return [
+			return { components: [
 				new TextComponent(
 					'class parameter needs to be in JVM format, not java format! Use `/` instead of `.` for package separation, and `$` instead of `.` for inner class separation.',
 				),
-			];
+			]};
 		if (regex && !isRegexSafe(new RegExp(className)))
-			return [new TextComponent('regex parameter matches too many values, please restrict it more')]
+			return basicTextResult('regex parameter matches too many values, please restrict it more')
 		const predicate = regex ? { matches: className } : { equals: className };
 		const result = (await query(Class, { predicate })) as {
 			gameVersions: GameVersion[];
@@ -97,7 +97,7 @@ export class ClassCommand extends Command<Args> {
 			}
 		}
 
-		if (mods.isEmpty()) return [new TextComponent(`No mods found containing a class matching \`${className}\``)];
+		if (mods.isEmpty()) return basicTextResult(`No mods found containing a class matching \`${className}\``);
 
 
 		const [mrModInfo, { data: cfModInfo }] = await Promise.all([
@@ -114,11 +114,27 @@ export class ClassCommand extends Command<Args> {
 			{} as Record<number, CFMod>,
 		);
 
-		return mods.getModInfos().map((modInfo) => {
+		const blockedIndices = new Set();
+		const index: Record<string, number> = {}
+		function addIndex(key: string, i: number) {
+			if (key in index || blockedIndices.has(key)) {
+				blockedIndices.add(key);
+				delete index[key];
+			} else {
+				index[key] = i;
+			}
+		}
+		const components = mods.getModInfos().map((modInfo, i) => {
+			const filled = fillModInfo(modInfo, optionalIndex(cfMods, modInfo.cfId), optionalIndex(mrMods, modInfo.mrId));
+
+			addIndex(filled.modid, i);
+			if (filled.displayName !== undefined) addIndex(filled.displayName, i);
+			for (const link in filled.links)
+				addIndex(link, i);
+
 			return new ModInfoComponent(
-				modInfo,
-				optionalIndex(cfMods, modInfo.cfId),
-				optionalIndex(mrMods, modInfo.mrId),
+				filled,
+				i,
 				(extra) =>
 					'Classes: ' +
 					first(extra, 5)
@@ -127,5 +143,7 @@ export class ClassCommand extends Command<Args> {
 					(extra.size > 5 ? ` and ${extra.size - 5} more` : ''),
 			);
 		});
+
+		return { components, index };
 	}
 }

@@ -2,7 +2,6 @@ import { InteractionResponseType, InteractionType, verifyKey } from 'discord-int
 import {
 	CommandInteraction,
 	ComponentInteraction,
-	ComponentType,
 	Interaction,
 	InteractiveComponentType,
 	ModalInteraction,
@@ -11,10 +10,12 @@ import { ComponentResponse, InteractionResponse, MessageResponse, ModalResponse,
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { getFromCache } from './lib/cache.ts';
-import { Component, TextComponent } from './lib/component.ts';
+import { TextComponent } from './lib/component.ts';
 import { getPage, makePaginationButtons } from './lib/pagination.ts';
+import { CommandResult } from './lib/command.ts';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
+// TODO: logging framework so that i can search logs better.
 
 export default {
 	/**
@@ -95,11 +96,12 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 	const { custom_id } = message.data;
 
 	const parts = custom_id.split('-');
-	if (parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!');
-	switch (parts.length) {
-		case 5: {// next/prev page
+	if (parts.length < 1 || parts.some((p) => p === undefined)) return new MessageResponse('Malformed button!');
+	switch (parts[0]) {
+		case '>':
+		case '<': {
+			// next/prev page
 			const [mode, commandName, id, stringPage, stringMaxPage] = parts;
-			if (mode !== '<' && mode !== '>') return new MessageResponse('Malformed mode');
 
 			const page = mode === '>' ? Number(stringPage) + 1 : Number(stringPage) - 1;
 			const maxPage = Number(stringMaxPage);
@@ -108,12 +110,12 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 			const command = COMMANDS[commandName];
 			if (!command) return new MessageResponse('Command not recognised.');
 
-			const cache = await getFromCache(`pages/${id}`);
+			const cache = await getFromCache<CommandResult>(`pages/${id}`);
 			// todo: edit to remove buttons?
 			if (cache === undefined) return new MessageResponse('Message cache expired');
-			if (!Array.isArray(cache)) return new MessageResponse('Message cache corrupted');
+			if (typeof cache.index !== 'object' || !Array.isArray(cache.components)) return new MessageResponse('Message cache corrupted');
+			const { components } = cache;
 
-			const components = cache as Component[];
 			const collected = getPage(components, page);
 
 			if (collected.length === 0) return new MessageResponse('Invalid page number');
@@ -123,9 +125,16 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 				InteractionResponseType.UPDATE_MESSAGE,
 			);
 		}
-		case 2: {// 'home'
-			const [commandName, maxPages] = parts;
-			return new ModalResponse('A Modal!', 'manage_modal', [new TextComponent(`Hello from modals! ${commandName} with ${maxPages}`)])
+		case '—': { // 'home' (this is an em-dash).
+			const [_, commandName, id, maxPages] = parts;
+
+			const fromCache = await getFromCache<CommandResult>(`pages/${id}`);
+			if (fromCache === undefined) return new MessageResponse('Message cache expired');
+			if (fromCache.index === undefined) return new MessageResponse('Message cache corrupted')
+
+			return new ModalResponse('A Modal!', 'manage_modal', [
+				new TextComponent(`\nYour index data: ${JSON.stringify(Object.values(fromCache.index))}`),
+			]);
 		}
 		default:
 			return new MessageResponse('Unknown button');

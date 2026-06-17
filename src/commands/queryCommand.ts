@@ -1,7 +1,6 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
-import { Command, type OptionGetter, type StringArg } from '../lib/command.ts';
-import { Component, TextComponent } from '../lib/component.ts';
+import { basicTextResult, Command, CommandResult, type OptionGetter, type StringArg } from '../lib/command.ts';
 
 export class QueryCommand extends Command<StringArg<'query'>> {
 	constructor(name: string, description: string) {
@@ -17,11 +16,11 @@ export class QueryCommand extends Command<StringArg<'query'>> {
 		});
 	}
 
-	protected async executeImpl(_e: Env, getOption: OptionGetter<StringArg<'query'>>, id: string): Promise<Component[]> {
+	protected async executeImpl(_e: Env, getOption: OptionGetter<StringArg<'query'>>, id: string): Promise<CommandResult> {
 		const q = getOption('query');
-		if (!q) return [new TextComponent('Query was null!')];
+		if (!q) return basicTextResult('Query was null!');
 		const queryResult = await query(q);
 		//TODO: respond with file if too large
-		return [new TextComponent(`\`\`\`json\n${JSON.stringify(queryResult, null, 1)}\`\`\``)];
+		return basicTextResult(`\`\`\`json\n${JSON.stringify(queryResult, null, 1)}\`\`\``);
 	}
 }
