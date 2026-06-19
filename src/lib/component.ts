@@ -1,4 +1,4 @@
-import { ButtonStyle, ComponentType, type PartialEmoji, type UnfurledMedia } from './discord.ts';
+import { ButtonStyle, ComponentType, type PartialEmoji, TextInputStyle, type UnfurledMedia } from './discord.ts';
 
 /** The maximum number of components in a message */
 export const MAX_COMPONENTS = 40;
@@ -135,12 +135,12 @@ export class SeparatorComponent extends Component {
 		this.spacing = spacing;
 	}
 }
+
 type ContainerChildComponent =
 	| ActionRowComponent
 	| TextComponent
 	| SectionComponent
 	| SeparatorComponent;
-
 export class ContainerComponent extends Component {
 	readonly components: ContainerChildComponent[];
 	readonly accent_color?: number;
@@ -154,15 +154,91 @@ export class ContainerComponent extends Component {
 	}
 }
 
-export type StringSelectComponent = never;
-export type TextInputComponent = never;
+export class SelectOption {
+	readonly label: string;
+	readonly value: string;
+	readonly description?: string;
+	readonly emoji?: PartialEmoji;
+	readonly default?: boolean;
+
+	constructor(label: string, value: string, description?: string, emoji?: PartialEmoji, default_?: boolean) {
+		this.label = label;
+		this.value = value;
+		this.description = description;
+		this.emoji = emoji;
+		this.default = default_;
+	}
+}
+
+export class StringSelectComponent extends Component {
+	readonly custom_id: string;
+	readonly options: SelectOption[];
+	readonly placeholder?: string;
+	readonly required?: boolean;
+	readonly min_values?: number;
+	readonly max_values?: number;
+
+	constructor(options: SelectOption[], custom_id: string, placeholder?: string, required?: boolean, min_values?: number, max_values?: number, id?: number) {
+		super(ComponentType.STRING_SELECT, id);
+		this.custom_id = custom_id;
+		this.options = options;
+		this.placeholder = placeholder;
+		this.required = required;
+		this.min_values = min_values;
+		this.max_values = max_values;
+	}
+}
+
+export class TextInputComponent extends Component {
+	readonly custom_id: string;
+	readonly style: TextInputStyle;
+	readonly value?: string;
+	readonly placeholder?: string;
+	readonly required?: boolean;
+	readonly min_length?: number;
+	readonly max_length?: number;
+
+	public constructor(
+		style: TextInputStyle,
+		custom_id: string,
+		value?: string,
+		placeholder?: string,
+		required?: boolean,
+		min_length?: number,
+		max_length?: number,
+		id?: number,
+	) {
+		super(ComponentType.TEXT_INPUT, id);
+		this.style = style;
+		this.custom_id = custom_id;
+		this.value = value;
+		this.placeholder = placeholder;
+		this.required = required;
+		this.min_length = min_length;
+		this.max_length = max_length;
+	}
+}
 export type UserSelectComponent = never;
 export type RoleSelectComponent = never;
 export type MentionableSelectComponent = never;
 export type ChannelSelectComponent = never;
 export type FileComponent = never;
 export type MediaGalleryComponent = never;
-export type LabelComponent = never;
+
+type LabelChildComponent = TextInputComponent | StringSelectComponent | UserSelectComponent | RoleSelectComponent | MentionableSelectComponent | ChannelSelectComponent | FileUploadComponent | RadioGroupComponent | CheckboxGroupComponent | CheckboxComponent;
+export class LabelComponent extends Component {
+	readonly label: string;
+	readonly description?: string;
+	readonly component: LabelChildComponent;
+
+	constructor(label: string, component: LabelChildComponent, description?: string, id?: number) {
+		super(ComponentType.LABEL, id);
+		this.label = label;
+		this.description = description;
+		this.component = component;
+	}
+}
+
 export type FileUploadComponent = never;
 export type RadioGroupComponent = never;
 export type CheckboxGroupComponent = never;

@@ -4,15 +4,16 @@ import {
 	ComponentInteraction,
 	Interaction,
 	InteractiveComponentType,
-	ModalInteraction,
+	ModalInteraction, TextInputStyle,
 } from './lib/discord.ts';
 import { ComponentResponse, InteractionResponse, MessageResponse, ModalResponse, PingResponse } from './lib/response.ts';
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { getFromCache } from './lib/cache.ts';
-import { TextComponent } from './lib/component.ts';
+import { LabelComponent, SelectOption, StringSelectComponent, TextComponent, TextInputComponent } from './lib/component.ts';
 import { getPage, makePaginationButtons } from './lib/pagination.ts';
 import { CommandResult } from './lib/command.ts';
+import { CURSEFORGE, GITHUB } from './lib/emoji.ts';
 
 // TODO: REFACTOR COMMAND DELEGATION SYSTEM. Maybe genrify it so you just give it query and list of params?
 // TODO: logging framework so that i can search logs better.
@@ -134,6 +135,13 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 
 			return new ModalResponse('A Modal!', 'manage_modal', [
 				new TextComponent(`\nYour index data: ${JSON.stringify(Object.values(fromCache.index))}`),
+				new LabelComponent('Mod Id', new TextInputComponent(TextInputStyle.SHORT, 'modid')),
+				new LabelComponent('Choose a mod', new StringSelectComponent([
+					// TODO: use emojis per category here (tech, magic ect. see what cf & mr have in common). and also display those on the embed.
+					new SelectOption('Systeams', 'systeams'),
+					new SelectOption('CurseForge', 'curseForge', 'the mod hosting site', CURSEFORGE),
+					new SelectOption('GH', 'github', 'the code hosting site', GITHUB),
+				], 'select', 'Please choose a website'))
 			]);
 		}
 		default:

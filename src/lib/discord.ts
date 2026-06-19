@@ -251,6 +251,13 @@ export const ButtonStyle = {
 	LINK: 5,
 } as const;
 export type ButtonStyle = (typeof CommandOptionType)[keyof typeof CommandOptionType];
+
+export const TextInputStyle = {
+	SHORT: 1,
+	PARAGRAPH: 2,
+} as const;
+export type TextInputStyle = (typeof  TextInputStyle)[keyof typeof TextInputStyle];
+
 export type PartialEmoji = {
 	name: string;
 	id: string;
