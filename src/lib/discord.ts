@@ -173,9 +173,9 @@ export const ComponentType = {
 	CONTAINER: 17,
 	LABEL: 18,
 	FILE_UPLOAD: 19,
-	RADIO_GROUP: 20,
-	CHECKBOX_GROUP: 21,
-	CHECKBOX: 22,
+	RADIO_GROUP: 21,
+	CHECKBOX_GROUP: 22,
+	CHECKBOX: 23,
 } as const;
 export type ComponentType = (typeof ComponentType)[keyof typeof ComponentType];
 
@@ -220,7 +220,7 @@ export type ComponentInteraction = {
 	};
 } & BaseInteraction;
 
-type ModalComponentResponse =
+export type ModalComponentResponse =
 	| StringSelectResponse<true>
 	| TextInputResponse<true>
 	| UserSelectResponse<true>

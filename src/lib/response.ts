@@ -1,11 +1,10 @@
-import { InteractionResponseType, Separator } from 'discord-interactions';
+import { InteractionResponseType } from 'discord-interactions';
 import {
 	ActionRowComponent,
 	ButtonComponent,
 	ChannelSelectComponent,
 	CheckboxComponent,
 	CheckboxGroupComponent,
-	Component,
 	ContainerComponent,
 	FileComponent,
 	FileUploadComponent,
@@ -38,9 +37,10 @@ export abstract class InteractionResponse {
 		return new Response(JSON.stringify(this.body), { headers: this.headers });
 	}
 
-	request(target: URL, method: 'POST' | 'PATCH' = 'POST' ): Request {
-		if (target.pathname.endsWith('callback') || target.pathname.endsWith('callback/')) throw new Error('Cannot send InteractionResponse as request to callback endpoint!')
-			return new Request(target, { method: method, body: JSON.stringify(this.body.data), headers: this.headers });
+	request(target: URL, method: 'POST' | 'PATCH' = 'POST'): Request {
+		if (target.pathname.endsWith('callback') || target.pathname.endsWith('callback/'))
+			throw new Error('Cannot send InteractionResponse as request to callback endpoint!');
+		return new Request(target, { method: method, body: JSON.stringify(this.body.data), headers: this.headers });
 	}
 }
 
@@ -58,15 +58,13 @@ export class AckEditResponse extends InteractionResponse {
 
 export class MessageResponse extends InteractionResponse {
 	constructor(message: string, ephemeral: boolean = true) {
-		super(
-			{
-				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-				data: {
-					content: message,
-					flags: ephemeral ? 1 << 6 : 0
-				},
-			}
-		);
+		super({
+			type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+			data: {
+				content: message,
+				flags: ephemeral ? 1 << 6 : 0
+			},
+		});
 	}
 }
 

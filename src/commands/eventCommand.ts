@@ -1,4 +1,4 @@
-import { Command, CommandResult, basicTextResult, OptionGetter, StringArg } from '../lib/command.ts';
+import { Command, CommandResult, errorResult, OptionGetter, StringArg } from '../lib/command.ts';
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion, Loader } from '../graphql/graphql.ts';
@@ -69,8 +69,8 @@ export class EventCommand extends Command<Args> {
 		const event = getOption('event');
 		const version = getOption('version');
 		const loader = getOption('modloader') as ListEntries<typeof Loaders> | undefined;
-		if (!event || !version || !loader) return basicTextResult('event, version and modloader parameters are required!');
-		if (!(loader in Loaders)) return basicTextResult('Unknown loader ' + loader + '. Try one of: ' + Loaders);
+		if (!event || !version || !loader) return errorResult('event, version and modloader parameters are required!');
+		if (!(loader in Loaders)) return errorResult('Unknown loader ' + loader + '. Try one of: ' + Loaders);
 
 		const predicate = `\\(${regexEscape(event)}\\)V`;
 

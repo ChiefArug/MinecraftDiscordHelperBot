@@ -3,6 +3,7 @@ import { env } from 'cloudflare:workers';
 import { checkSuccess } from './lib/util.ts';
 
 const URL = 'https://api.curseforge.com/v1/';
+export const CF_SERVER_IDS = new Set(['428228256236306434', '900128427150028811']);
 
 export type CurseForgeProject = CFMod
 

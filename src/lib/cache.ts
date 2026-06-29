@@ -1,15 +1,24 @@
+import { CommandSuccessResult } from './command.ts';
+
 const base = "https://waifu.chiefarug.workers.dev/"
 
 const CACHE_TIME = 12 * 60 * 60; // 12 hours
 
-export const saveToCache = async <T extends object>(value: T, key: string): Promise<void> => {
+export type CacheKey<T> = string & {readonly '': unique symbol};
+
+export function commandResultKey(id: number | string) {
+	return `command-result/${id}` as CacheKey<CommandSuccessResult>
+}
+
+
+export const saveToCache = async <T extends object>(value: T, key: CacheKey<T>): Promise<void> => {
 	const cacheKey = new Request(base + '/' + key);
 	const cache = caches.default;
 	const cacheValue = new Response(JSON.stringify(value), { headers: { 'cache-control': `max-age=${CACHE_TIME}` } });
 	await cache.put(cacheKey, cacheValue);
 }
 
-export const getFromCache = async <T extends object>(key: string): Promise<T | undefined> => {
+export const getFromCache = async <T extends object>(key: CacheKey<T>): Promise<T | undefined> => {
 	const cacheKey = new Request(base + '/' + key);
 	const cache = caches.default;
 	const cached = await cache.match(cacheKey);

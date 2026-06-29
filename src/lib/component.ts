@@ -242,4 +242,12 @@ export class LabelComponent extends Component {
 export type FileUploadComponent = never;
 export type RadioGroupComponent = never;
 export type CheckboxGroupComponent = never;
-export type CheckboxComponent = never;
+export class CheckboxComponent extends Component {
+	readonly default?: boolean;
+	readonly custom_id: string;
+	constructor(custom_id: string, default_?: boolean, id?: number) {
+		super(ComponentType.CHECKBOX, id);
+		this.custom_id = custom_id;
+		this.default = default_;
+	}
+}

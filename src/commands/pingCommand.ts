@@ -1,4 +1,4 @@
-import { Command, basicTextResult, type OptionGetter, CommandResult } from '../lib/command.ts';
+import { Command, errorResult, type OptionGetter, CommandResult } from '../lib/command.ts';
 
 export class PingCommand extends Command<never> {
 	constructor(name: string, description: string) {
@@ -6,6 +6,6 @@ export class PingCommand extends Command<never> {
 	}
 
 	executeImpl(_e: Env, _go: OptionGetter<never>, id: string): Promise<CommandResult> {
-		return Promise.resolve(basicTextResult('Pong!'));
+		return Promise.resolve(errorResult('Pong!'));
 	}
 }

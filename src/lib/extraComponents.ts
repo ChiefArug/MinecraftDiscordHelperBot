@@ -1,5 +1,5 @@
 import { ActionRowComponent, Component, ContainerComponent, LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './component.ts';
-import { FilledModInfo } from './modInfo.ts';
+import { FilledModInfo, FinishedModInfo } from './modInfo.ts';
 import { PartialEmoji } from './discord.ts';
 import { THEME_COLOUR_DEC } from '../index.ts';
 
@@ -19,21 +19,17 @@ function getLinkComponent(links: Record<string, PartialEmoji>): [] | [Component]
  * A special container component that displays information about a mod
  */
 export class ModInfoComponent extends ContainerComponent {
-	/**
-	 * If both cf and mr are undefined it is assumed that this mod is a jar-in-jar mod.
-	 * @param modInfo Information about the mod
-	 * @param i
-	 * @param extrasProcessor The stringifier function to display the modInfo's `extra` data.
-	 */
+	constructor(modInfo: FinishedModInfo, i?: number);
+	constructor(modInfo: FilledModInfo, i: number, extrasProcessor: (extra: Set<string>) => string);
 	constructor(
-		{ displayName, modid, links, extra, versions, imageUrl}: FilledModInfo,
+		{ displayName, modid, links, extra, versions, imageUrl }: FilledModInfo | FinishedModInfo,
 		i: number,
 		extrasProcessor: (extra: Set<string>) => string = (e) => [...e].join(', '),
 	) {
 		const bodyCore = new TextComponent( // jar-in-jar assumption based on there not being an associated project.
-			(displayName ? `**${displayName}** (\`${modid}\`)` : `**\`${modid}\`** (Jar-in-Jar)`) + '\n' +
-						`Versions: ${versions.map(([l, v]) => `${l}-${v}`).join(', ')}\n` +
-						`${(extrasProcessor(extra))}`,
+			(displayName ? (i !== undefined ? `[${i}] ` : '') + `**${displayName}** (\`${modid}\`)\n` : `**\`${modid}\`** (Jar-in-Jar)\n`) +
+				`Versions: ${versions.map(([l, v]) => `${l}-${v}`).join(', ')}\n` +
+				`${typeof extra === 'string' ? extra : extrasProcessor(extra)}`,
 		);
 		const bodyComponent = imageUrl ? new SectionComponent([bodyCore], new ThumbnailComponent(imageUrl)) : bodyCore;
 

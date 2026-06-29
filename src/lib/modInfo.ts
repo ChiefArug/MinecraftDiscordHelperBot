@@ -18,6 +18,9 @@ export type FilledModInfo = ModInfo & {
 	links: Record<string, PartialEmoji>;
 	imageUrl?: string;
 }
+export type FinishedModInfo = Omit<FilledModInfo, 'extra'> & {
+	extra: string;
+}
 
 /**
  * Fill the provided modInfo with additional data from CurseForge and/or Modrinth

@@ -29,24 +29,28 @@ const __commands = {
 
 		const maybeCached = await cacheString(() => Promise.resolve(rand), 'random');
 
-		return {components: [new ContainerComponent([
-			new TextComponent('Here are some modrinth stats!'),
-			new SectionComponent(
-				[
-					new TextComponent('Projects: ' + res.projects),
-					new TextComponent('Versions: ' + res.versions),
-					new TextComponent('Files: ' + res.files),
-				],
-				new ThumbnailComponent('https://cdn.modrinth.com/modrinth-new.png', 'modrinth logo'),
-			),
-			new SectionComponent(
-				[new TextComponent('Authors: ' + res.authors)],
-				new LinkButtonComponent('https://modrinth.com/auth/sign-up', 'Sign Up', MODRINTH),
-			),
-			new TextComponent(`Today's random number: ${maybeCached}!`),
-			new TextComponent(`Now's random number: ${rand}!`),
-			makePaginationButtons('test1', 'no', 3, 10),
-		])]};
+		return {
+			components: [
+				new ContainerComponent([
+					new TextComponent('Here are some modrinth stats!'),
+					new SectionComponent(
+						[
+							new TextComponent('Projects: ' + res.projects),
+							new TextComponent('Versions: ' + res.versions),
+							new TextComponent('Files: ' + res.files),
+						],
+						new ThumbnailComponent('https://cdn.modrinth.com/modrinth-new.png', 'modrinth logo'),
+					),
+					new SectionComponent(
+						[new TextComponent('Authors (Including <@812094192133996624>): ' + res.authors)],
+						new LinkButtonComponent('https://modrinth.com/auth/sign-up', 'Sign Up', MODRINTH),
+					),
+					new TextComponent(`Today's random number: ${maybeCached}!`),
+					new TextComponent(`Now's random number: ${rand}!`),
+					makePaginationButtons('test1', 'no', 3, 10, 4),
+				]),
+			],
+		};
 	}),
 	modid: new ModIdCommand('modid', 'Look up information about a particular Mod ID'),
 	query: new QueryCommand('query', 'Run the query passed in as a string'),

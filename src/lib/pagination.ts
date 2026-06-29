@@ -4,7 +4,7 @@ import { ButtonStyle } from './discord.ts';
 /** The maximum number of components per page, with 4 components available for pagination */
 export const PAGE_SIZE = MAX_COMPONENTS - 4;
 
-export const makePaginationButtons = (commandName: string, interactionId: string, curPage: number, maxPages: number) => {
+export const makePaginationButtons = (commandName: string, interactionId: string, curPage: number, maxPages: number, firstComponentInPage: number) => {
 	let left = new ActionButtonComponent(
 		'❮',
 		ButtonStyle.SECONDARY,
@@ -12,7 +12,11 @@ export const makePaginationButtons = (commandName: string, interactionId: string
 		curPage == 1,
 	);
 	// TODO: add interaction id to the button for responses, and actually handle responses
-	let middle = new ActionButtonComponent(`${curPage}/${maxPages}`, ButtonStyle.SECONDARY, `—-${commandName}-${interactionId}-${maxPages}`);
+	let middle = new ActionButtonComponent(
+		`${curPage}/${maxPages}`,
+		ButtonStyle.SECONDARY,
+		`—-${commandName}-${interactionId}-${firstComponentInPage}-${maxPages}`,
+	);
 	let right = new ActionButtonComponent(
 		'❯',
 		ButtonStyle.SECONDARY,

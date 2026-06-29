@@ -1,15 +1,13 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion } from '../graphql/graphql.ts';
-import { type BoolArg, Command, CommandResult, basicTextResult, type OptionGetter, type StringArg } from '../lib/command.ts';
-import { LoaderVersion, isRegexSafe, first } from '../lib/util.ts';
-import { fillModInfo, ModMap} from '../lib/modInfo.ts'
-import { TextComponent } from '../lib/component.ts';
+import { errorResult, type BoolArg, Command, CommandResult, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { first, isRegexSafe, LoaderVersion } from '../lib/util.ts';
+import { fillModInfo, FinishedModInfo, ModMap } from '../lib/modInfo.ts';
 import { mrModInfos } from '../modrinth.ts';
 import { cfModInfos } from '../curseforge.ts';
 import { CFMod } from '../lib/cfTypes.ts';
 import { Labrinth } from '@modrinth/api-client';
-import { ModInfoComponent } from '../lib/extraComponents.ts';
 
 type Project = Labrinth.Projects.v2.Project;
 
@@ -57,18 +55,14 @@ export class ClassCommand extends Command<Args> {
 
 	protected override async executeImpl(env: Env, getOption: OptionGetter<Args>): Promise<CommandResult> {
 		const className = getOption('class');
-		if (!className) return basicTextResult('class parameter is required!');
+		if (!className) return errorResult('class parameter is required!');
 
 		const regex = getOption('regex', false);
 
 		if (!regex && className.includes('.'))
-			return { components: [
-				new TextComponent(
-					'class parameter needs to be in JVM format, not java format! Use `/` instead of `.` for package separation, and `$` instead of `.` for inner class separation.',
-				),
-			]};
+			return errorResult('class parameter needs to be in JVM format, not java format! Use `/` instead of `.` for package separation, and `$` instead of `.` for inner class separation.');
 		if (regex && !isRegexSafe(new RegExp(className)))
-			return basicTextResult('regex parameter matches too many values, please restrict it more')
+			return errorResult('regex parameter matches too many values, please restrict it more')
 		const predicate = regex ? { matches: className } : { equals: className };
 		const result = (await query(Class, { predicate })) as {
 			gameVersions: GameVersion[];
@@ -83,7 +77,7 @@ export class ClassCommand extends Command<Args> {
 				const mrId = node.modrinthProjectId ?? undefined;
 				let classes = node.classes;
 				// ignore anything but the primary modid
-				const modid = node.modIds?.[0] ?? node.name;
+				const modid = node.modIds?.[0] ?? node.name ?? 'unknown modid';
 
 				let extra = mods.update([cfId, mrId], loaderVersion, modid, () => ({
 					modid,
@@ -97,7 +91,7 @@ export class ClassCommand extends Command<Args> {
 			}
 		}
 
-		if (mods.isEmpty()) return basicTextResult(`No mods found containing a class matching \`${className}\``);
+		if (mods.isEmpty()) return errorResult(`No mods found containing a class matching \`${className}\``);
 
 
 		const [mrModInfo, { data: cfModInfo }] = await Promise.all([
@@ -124,26 +118,26 @@ export class ClassCommand extends Command<Args> {
 				index[key] = i;
 			}
 		}
-		const components = mods.getModInfos().map((modInfo, i) => {
+		const modInfos = mods.getModInfos().map((modInfo, i) => {
 			const filled = fillModInfo(modInfo, optionalIndex(cfMods, modInfo.cfId), optionalIndex(mrMods, modInfo.mrId));
 
 			addIndex(filled.modid, i);
 			if (filled.displayName !== undefined) addIndex(filled.displayName, i);
-			for (const link in filled.links)
-				addIndex(link, i);
+			for (const link in filled.links) addIndex(link, i);
+			if (filled.cfId !== undefined) addIndex(String(filled.cfId), i);
+			if (filled.mrId !== undefined) addIndex(String(filled.mrId), i);
 
-			return new ModInfoComponent(
-				filled,
-				i,
-				(extra) =>
-					'Classes: ' +
-					first(extra, 5)
-						.map((e) => `\`${e.split('/').pop()}\``)
-						.join(', ') +
-					(extra.size > 5 ? ` and ${extra.size - 5} more` : ''),
-			);
+			const classesString = 'Classes: ' +
+				first(filled.extra, 5)
+					.map((e) => `\`${e.split('/').pop()}\``)
+					.join(', ') +
+				(filled.extra.size > 5 ? ` and ${filled.extra.size - 5} more` : '');
+			const withExtra: FinishedModInfo = Object.assign(filled, {
+				extra: classesString,
+			});
+			return withExtra;
 		});
 
-		return { components, index };
+		return { modInfos, index };
 	}
 }

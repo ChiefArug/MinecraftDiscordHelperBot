@@ -90,3 +90,22 @@ export const first = <T>(iterable: Iterable<T>, n: number): T[] => {
 	}
 	return out;
 }
+
+/**
+ * Get two indices between min and max that are gap apart and contain target, while optimising for the maximum number of indices either side of target.
+ *
+ * @param target The target index to always include
+ * @param max The maximum index
+ * @param min The minimum index
+ * @param padding The padding to try and put on either side of the target.
+ * @return two indices guaranteed to be between min and max and contain target.
+ */
+export const pairInRange = (target: number, max: number, min: number = 0, padding: number = 12): [number, number] => {
+	return [
+		Math.max(min, target - padding),
+		Math.min(max, target + padding),
+	]
+};
+
+
+

@@ -2,8 +2,10 @@ import { type CommandInteraction, type CommandOption, type CommandOptions, Comma
 
 import { AckResponse, ComponentResponse, InteractionResponse, MessageResponse } from './response.ts';
 import { Component, TextComponent } from './component.ts';
-import { saveToCache } from './cache.ts';
+import { commandResultKey, saveToCache } from './cache.ts';
 import { countPages, getPage, makePaginationButtons } from './pagination.ts';
+import { ModInfoComponent } from './extraComponents.ts';
+import { FinishedModInfo } from './modInfo.ts';
 
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
@@ -18,7 +20,10 @@ export type OptionGetter<O extends CommandOptions> = __defaultedOptionGetter<O> 
 export type StringArg<K extends string> = { [k in K]: typeof CommandOptionType.STRING };
 export type BoolArg<K extends string> = { [k in K]: typeof CommandOptionType.BOOLEAN };
 export type SelectionArg<K extends readonly string[]> = { [k in keyof K]: typeof CommandOptionType.STRING };
-export type CommandResult = {components: Component[], index?: Record<string, number>};
+export type CommandSuccessResult = { modInfos: FinishedModInfo[]; index: Record<string, number> };
+export type CommandFailResult = { error: string };
+export type CommandComponentResult = { components: Component[] };
+export type CommandResult = CommandSuccessResult | CommandFailResult | CommandComponentResult;
 /**
  * A class representing a Discord command.
  * @typeParam O Map of string keys to command types that this command accepts. Makes {@link getOption} and the command constructor completely typesafe.
@@ -121,24 +126,29 @@ export abstract class Command<O extends CommandOptions> {
 				// first stage, basic response. both success and errors edit the original message
 				.then(
 					(result) => {
-						const { index, components } = result;
-						const initialResponse: Component[] = getPage(components, 1);
-						const maxPage = countPages(components);
+						const componentResult: Component[] = [];
+						if ('error' in result) componentResult.push(new TextComponent(result.error));
+						else if ('components' in result) componentResult.push(...result.components);
+						else {
+							const { index, modInfos } = result;
+							const components = modInfos.map((mi, i) => new ModInfoComponent(mi, i));
+							componentResult.push(...getPage(components, 1));
+							const maxPage = countPages(components);
 
-						// save the results in the cache, we will need them later.
-						if (index !== undefined) ctx.waitUntil(saveToCache({ index, components }, `pages/${int.id}`));
+							if (index !== undefined) ctx.waitUntil(saveToCache({ index, modInfos }, commandResultKey(int.id)));
 
-						if (initialResponse.length != components.length) {
-							// add pagination if needed
-							initialResponse.push(makePaginationButtons(this.name, int.id, 1, maxPage));
+							if (componentResult.length != components.length) {
+								// add pagination if needed
+								componentResult.push(makePaginationButtons(this.name, int.id, 1, maxPage, 0));
+							}
 						}
 
-						return fetch(new ComponentResponse(initialResponse).request(new URL(base + '/messages/@original'), 'PATCH'));
+						return fetch(new ComponentResponse(componentResult).request(new URL(base + '/messages/@original'), 'PATCH'));
 					},
 					(err) => {
 						console.error(`Error responding to request ${int.id}: ${err}, ${err.stack}`);
 						return fetch(
-							new MessageResponse(`An error occurred executing that. Id for logging: ${int.id}`).request(
+							new MessageResponse(`An error occurred executing that. Id for logging: ${int.id}. Go yell at <@812094192133996624>.`).request(
 								new URL(base + '/messages/@original'),
 								'PATCH',
 							),
@@ -151,10 +161,9 @@ export abstract class Command<O extends CommandOptions> {
 						return Promise.all([
 							res.text().then((txt) => console.error(`Failed to respond to ${int.id}: ${res.status}, ${txt}`)),
 							fetch(
-								new MessageResponse(`An error occurred responding to that request :(. Id for logging: ${int.id}`).request(
-									new URL(base),
-									'POST',
-								),
+								new MessageResponse(
+									`An error occurred responding to that request :(. Id for logging: ${int.id}. Go yell at <@812094192133996624>`,
+								).request(new URL(base), 'POST'),
 							),
 						]);
 					}
@@ -191,6 +200,6 @@ function getOptionGetter<O extends CommandOptions>(options: CommandOption<O>[], 
 	return getOption;
 }
 
-export function basicTextResult(message: string): CommandResult {
-	return { components: [new TextComponent(message)]};
+export function errorResult(error: string): CommandResult {
+	return { error };
 }

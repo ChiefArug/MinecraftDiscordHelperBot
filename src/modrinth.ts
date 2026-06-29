@@ -2,6 +2,7 @@ import { type Labrinth } from '@modrinth/api-client'
 import { checkSuccess } from './lib/util.ts';
 
 const URL = 'https://api.modrinth.com/v2/';
+export const MR_SERVER_ID = '734077874708938864';
 
 export type ModrinthProject = Labrinth.Projects.v2.Project;
 
