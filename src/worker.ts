@@ -13,7 +13,14 @@ import { ComponentResponse, InteractionResponse, MessageResponse, ModalResponse,
 import Page from './index.ts';
 import { COMMANDS } from './commands.ts';
 import { commandResultKey, getFromCache } from './lib/cache.ts';
-import { LabelComponent, SelectOption, StringSelectComponent, TextComponent, TextInputComponent } from './lib/component.ts';
+import {
+	CheckboxComponent,
+	LabelComponent,
+	SelectOption,
+	StringSelectComponent,
+	TextComponent,
+	TextInputComponent,
+} from './lib/component.ts';
 import { getPage, makePaginationButtons } from './lib/pagination.ts';
 import { ModInfoComponent } from './lib/extraComponents.ts';
 import { checkSuccess, pairInRange } from './lib/util.ts';

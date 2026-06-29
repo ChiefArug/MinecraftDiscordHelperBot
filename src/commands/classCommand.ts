@@ -42,7 +42,7 @@ export class ClassCommand extends Command<Args> {
 				type: CommandOptionType.STRING,
 				description: 'The classname to search for, in JVM format (ie java/lang/Character$Subset)',
 				min_length: 4,
-				max_length: 64,
+				max_length: 128,
 				required: true,
 			},
 			regex: {
