@@ -130,7 +130,6 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 			const collected = getPage(components, page);
 
 			if (collected.length === 0) return new MessageResponse('Invalid page number');
-			// TODO: the middle button should open a modal to select page, or collapse to a single entry and remove pagination.
 			return new ComponentResponse(
 				[...collected, makePaginationButtons(commandName, id, page, maxPage, collected[0].id ?? 0)],
 				InteractionResponseType.UPDATE_MESSAGE,
