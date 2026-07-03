@@ -1,4 +1,5 @@
 import { Loader } from '../graphql/graphql.ts';
+import { Command } from './command.ts';
 
 export const clamp = (string: string, length: number = 2000) => {
 	if (string.length <= length) {
@@ -107,5 +108,12 @@ export const pairInRange = (target: number, max: number, min: number = 0, paddin
 	]
 };
 
+/**
+ * Get the kth element of l, unless either l or k is undefined
+ * @param l
+ * @param k
+ * @return undefined if either parameter is undefined, l[k] otherwise
+ */
+export const optionalIndex = <K extends string | number | symbol, V>(l: Record<K,V>, k: K | undefined): V | undefined => k ? l[k] : undefined;
 
 

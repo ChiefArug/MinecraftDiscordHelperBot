@@ -174,6 +174,7 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 	}
 }
 
+// TODO: maybe 'goto page' functionality?
 async function handleModal(env: Env, ctx: ExecutionContext<any>, message: ModalInteraction): Promise<InteractionResponse> {
 	const parts = message.data.custom_id.split('-');
 	if (parts.length < 3) return new MessageResponse("Bad modal!")

@@ -2,7 +2,7 @@ import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion } from '../graphql/graphql.ts';
 import { errorResult, type BoolArg, Command, CommandResult, type OptionGetter, type StringArg } from '../lib/command.ts';
-import { first, isRegexSafe, LoaderVersion } from '../lib/util.ts';
+import { first, isRegexSafe, LoaderVersion, optionalIndex } from '../lib/util.ts';
 import { fillModInfo, FinishedModInfo, ModMap } from '../lib/modInfo.ts';
 import { mrModInfos } from '../modrinth.ts';
 import { cfModInfos } from '../curseforge.ts';
@@ -33,7 +33,6 @@ export const Class = `query Class($predicate: StringPredicate) {
 }`;
 
 type Args = StringArg<'class'> & BoolArg<'regex'>;
-const optionalIndex = <K extends string | number | symbol, V>(l: Record<K,V>, k: K | undefined): V | undefined => k ? l[k] : undefined;
 export class ClassCommand extends Command<Args> {
 	constructor(name: string, description: string) {
 		super(name, description, {
@@ -59,6 +58,7 @@ export class ClassCommand extends Command<Args> {
 
 		const regex = getOption('regex', false);
 
+		// TODO: chekc if regex starts with $ or ends with ^, in which case it is invalid.
 		if (!regex && className.includes('.'))
 			return errorResult('class parameter needs to be in JVM format, not java format! Use `/` instead of `.` for package separation, and `$` instead of `.` for inner class separation.');
 		if (regex && !isRegexSafe(new RegExp(className)))
@@ -94,6 +94,7 @@ export class ClassCommand extends Command<Args> {
 		if (mods.isEmpty()) return errorResult(`No mods found containing a class matching \`${className}\``);
 
 
+		// TODO: another query to waifu to collect jij info before we query cf
 		const [mrModInfo, { data: cfModInfo }] = await Promise.all([
 			mrModInfos(mods.getModrinthIds()),
 			cfModInfos(mods.getCurseForgeIds()),

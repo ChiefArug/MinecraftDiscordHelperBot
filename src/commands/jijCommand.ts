@@ -1,8 +1,15 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
-import type { GameVersion, Loader, NestedArtifact } from '../graphql/graphql.ts';
+import type { GameVersion, NestedArtifact } from '../graphql/graphql.ts';
 import { type BoolArg, Command, CommandResult, errorResult, type OptionGetter, type StringArg } from '../lib/command.ts';
-import { regexEscape } from '../lib/util.ts';
+import { first, LoaderVersion, optionalIndex, regexEscape } from '../lib/util.ts';
+import { fillModInfo, FinishedModInfo, ModMap } from '../lib/modInfo.ts';
+import { mrModInfos } from '../modrinth.ts';
+import { cfModInfos } from '../curseforge.ts';
+import { CFMod } from '../lib/cfTypes.ts';
+import { Labrinth } from '@modrinth/api-client';
+
+type Project = Labrinth.Projects.v2.Project;
 
 // language=GraphQL
 export const JIJ = `query JIJ($predicate: StringPredicate) {
@@ -54,45 +61,85 @@ export class JijCommand extends Command<StringArg<'locator'> & BoolArg<'regex'>>
 		if (!locator) return errorResult('locator parameter is required!');
 
 		const regex = getOption('regex', false);
-		// The method works both locally and on workers, it's just not recognised.
+
 		const pattern = regex ? locator : regexEscape(locator);
 		const result = (await query(JIJ, { predicate: { matches: pattern } })) as {
 			gameVersions: GameVersion[];
 		};
 
-		const cfMods: Record<number, `[${string}] ${Loader} ${string}`[]> = {};
-		const mrMods: Record<string, `[${string}] ${Loader} ${string}`[]> = {};
+		const mods: ModMap = new ModMap();
 		for (const gameVersion of result.gameVersions) {
 			const { loader, version } = gameVersion;
+			const loaderVersion: LoaderVersion = [loader, version];
 			for (const { node } of gameVersion.mods.edges) {
-				const cf = node.curseforgeProjectId;
-				const mr = node.modrinthProjectId;
-				let nestedArtifactsFlat = node.nestedArtifactsFlat as NestedArtifact[];
-				const jijed = nestedArtifactsFlat?.length ?? -1;
-				const modids = node.modIds as string[];
+				const cfId = node.curseforgeProjectId ?? undefined;
+				const mrId = node.modrinthProjectId ?? undefined;
+				// ignore anything but the primary modid
+
+				const modid = node.modIds?.[0] ?? node.name ?? 'unknown modid';
+
+				const nestedArtifactsFlat = node.nestedArtifactsFlat as NestedArtifact[];
 				const matchingJij = nestedArtifactsFlat
 					.filter((na) => na.id.match(pattern))
 					.map((na) => `\`${na.id}\` (${na.version})`)
-					.join(',');
-				const modidsDisplay = modids.map((m) => `\`${m}\``).join(',');
-				if (cf) (cfMods[cf] ??= []).push(`[${modidsDisplay}] ${loader} ${version} has ${jijed} jar(s) inside. Matched: ${matchingJij}`);
-				if (mr) (mrMods[mr] ??= []).push(`[${modidsDisplay}] ${loader} ${version} has ${jijed} jar(s) inside. Matched: ${matchingJij}`);
+
+				let extra = mods.update([cfId, mrId], loaderVersion, modid, () => ({
+					modid,
+					cfId,
+					mrId,
+					versions: [loaderVersion],
+					extra: new Set(),
+				}));
+
+				matchingJij.forEach(extra);
 			}
 		}
 
-		if (Object.keys(cfMods).length === 0 && Object.keys(mrMods).length === 0)
-			return errorResult(`No mods found containing a jij matching ${locator}`);
+		if (mods.isEmpty()) return errorResult(`No mods found containing a jar matching ${locator}`);
 
-		const wrap = <T extends string | number>(prefix: string, values: Record<T, `[${string}] ${Loader} ${string}`[]>): string => {
-			return Object.entries(values)
-				.map(([id, versionString]) => {
-					return `${prefix}${id} ${versionString}`;
-				})
-				.join('\n');
-		};
+		const [mrModInfo, { data: cfModInfo }] = await Promise.all([mrModInfos(mods.getModrinthIds()), cfModInfos(mods.getCurseForgeIds())]);
 
-		return errorResult(
-				`Mods found: \nModrinth: ${wrap('https://modrinth.com/mod/', mrMods)}\nCurseForge: ${wrap('https://cflookup.com/', cfMods)}`,
-			);
+		const mrMods: Record<string, Project> = mrModInfo.reduce(
+			(prev, cur) => Object.assign(prev, { [cur.id]: cur }),
+			{} as Record<string, Project>,
+		);
+		const cfMods: Record<number, CFMod> = cfModInfo.reduce(
+			(prev, cur) => Object.assign(prev, { [cur.id]: cur }),
+			{} as Record<number, CFMod>,
+		);
+
+		const blockedIndices = new Set();
+		const index: Record<string, number> = {};
+		function addIndex(key: string, i: number) {
+			if (key in index || blockedIndices.has(key)) {
+				blockedIndices.add(key);
+				delete index[key];
+			} else {
+				index[key] = i;
+			}
+		}
+		const modInfos = mods.getModInfos().map((modInfo, i) => {
+			const filled = fillModInfo(modInfo, optionalIndex(cfMods, modInfo.cfId), optionalIndex(mrMods, modInfo.mrId));
+
+			addIndex(filled.modid, i);
+			if (filled.displayName !== undefined) addIndex(filled.displayName, i);
+			for (const link in filled.links) addIndex(link, i);
+			if (filled.cfId !== undefined) addIndex(String(filled.cfId), i);
+			if (filled.mrId !== undefined) addIndex(String(filled.mrId), i);
+
+			const classesString =
+				filled.extra.size == 0
+					? ''
+					: 'Macthed JiJs: ' +
+						first(filled.extra, 5)
+							.join(', ') +
+						(filled.extra.size > 5 ? ` and ${filled.extra.size - 5} more` : '');
+			const withExtra: FinishedModInfo = Object.assign(filled, {
+				extra: classesString,
+			});
+			return withExtra;
+		});
+
+		return { modInfos, index };
 	}
 }
