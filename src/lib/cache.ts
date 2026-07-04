@@ -1,4 +1,4 @@
-import { CommandSuccessResult } from './command.ts';
+import type { CommandSuccessResult } from './command.ts';
 
 const base = "https://waifu.chiefarug.workers.dev/"
 

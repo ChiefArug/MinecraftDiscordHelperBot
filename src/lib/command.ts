@@ -5,7 +5,7 @@ import { Component, TextComponent } from './component.ts';
 import { commandResultKey, saveToCache } from './cache.ts';
 import { countPages, getPage, makePaginationButtons } from './pagination.ts';
 import { ModInfoComponent } from './extraComponents.ts';
-import { FinishedModInfo } from './modInfo.ts';
+import type { FinishedModInfo } from './modInfo.ts';
 
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 

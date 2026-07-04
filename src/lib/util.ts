@@ -1,5 +1,4 @@
-import { Loader } from '../graphql/graphql.ts';
-import { Command } from './command.ts';
+import type { Loader } from '../graphql/graphql.ts';
 
 export const clamp = (string: string, length: number = 2000) => {
 	if (string.length <= length) {

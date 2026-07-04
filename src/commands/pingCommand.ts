@@ -1,4 +1,4 @@
-import { Command, errorResult, type OptionGetter, CommandResult } from '../lib/command.ts';
+import { Command, errorResult, type OptionGetter, type CommandResult } from '../lib/command.ts';
 
 export class PingCommand extends Command<never> {
 	constructor(name: string, description: string) {

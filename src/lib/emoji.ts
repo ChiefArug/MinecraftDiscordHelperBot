@@ -1,4 +1,4 @@
-import { PartialEmoji } from './discord.ts';
+import type { PartialEmoji } from './discord.ts';
 
 export const CURSEFORGE: PartialEmoji = {
 	name: 'curseforge',

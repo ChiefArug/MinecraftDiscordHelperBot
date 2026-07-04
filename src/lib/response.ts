@@ -1,5 +1,5 @@
 import { InteractionResponseType } from 'discord-interactions';
-import {
+import type {
 	ActionRowComponent,
 	ButtonComponent,
 	ChannelSelectComponent,

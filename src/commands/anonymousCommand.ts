@@ -1,5 +1,5 @@
 import { type CommandOption, type CommandOptions, InteractionContextType } from '../lib/discord.ts';
-import { Command, CommandResult, type OptionGetter } from '../lib/command.ts';
+import { Command, type CommandResult, type OptionGetter } from '../lib/command.ts';
 
 export class AnonymousCommand<O extends CommandOptions> extends Command<O> {
 	private readonly exec: (env: Env, getOption: OptionGetter<O>) => Promise<CommandResult>;

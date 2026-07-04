@@ -1,6 +1,6 @@
 import { ActionRowComponent, Component, ContainerComponent, LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './component.ts';
-import { FilledModInfo, FinishedModInfo } from './modInfo.ts';
-import { PartialEmoji } from './discord.ts';
+import type { FilledModInfo, FinishedModInfo } from './modInfo.ts';
+import type { PartialEmoji } from './discord.ts';
 import { THEME_COLOUR_DEC } from '../index.ts';
 
 

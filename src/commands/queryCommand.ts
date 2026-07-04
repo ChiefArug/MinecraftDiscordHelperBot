@@ -1,6 +1,6 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
-import { errorResult, Command, CommandResult, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { errorResult, Command, type CommandResult, type OptionGetter, type StringArg } from '../lib/command.ts';
 
 export class QueryCommand extends Command<StringArg<'query'>> {
 	constructor(name: string, description: string) {

@@ -1,13 +1,13 @@
 import { CommandOptionType } from '../lib/discord.ts';
 import { query } from '../waifu.ts';
 import type { GameVersion, NestedArtifact } from '../graphql/graphql.ts';
-import { type BoolArg, Command, CommandResult, errorResult, type OptionGetter, type StringArg } from '../lib/command.ts';
-import { first, LoaderVersion, optionalIndex, regexEscape } from '../lib/util.ts';
-import { fillModInfo, FinishedModInfo, ModMap } from '../lib/modInfo.ts';
+import { type BoolArg, Command, type CommandResult, errorResult, type OptionGetter, type StringArg } from '../lib/command.ts';
+import { first, type LoaderVersion, optionalIndex, regexEscape } from '../lib/util.ts';
+import { fillModInfo, type FinishedModInfo, ModMap } from '../lib/modInfo.ts';
 import { mrModInfos } from '../modrinth.ts';
 import { cfModInfos } from '../curseforge.ts';
-import { CFMod } from '../lib/cfTypes.ts';
-import { Labrinth } from '@modrinth/api-client';
+import type { CFMod } from '../lib/cfTypes.ts';
+import type { Labrinth } from '@modrinth/api-client';
 
 type Project = Labrinth.Projects.v2.Project;
 

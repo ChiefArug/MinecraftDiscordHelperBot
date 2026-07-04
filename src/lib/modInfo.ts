@@ -1,7 +1,7 @@
-import { LoaderVersion } from './util.ts';
-import { PartialEmoji } from './discord.ts';
-import { ModrinthProject } from '../modrinth.ts';
-import { CFMod } from './cfTypes.ts';
+import type { LoaderVersion } from './util.ts';
+import type { PartialEmoji } from './discord.ts';
+import type { ModrinthProject } from '../modrinth.ts';
+import type { CFMod } from './cfTypes.ts';
 import { CURSEFORGE, GITHUB, MODRINTH } from './emoji.ts';
 
 /** [curseforge, modrinth] */
