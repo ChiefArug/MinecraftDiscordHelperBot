@@ -72,6 +72,7 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 
 		if (mods.isEmpty()) return errorResult(`No mods found!`);
 
+		// TODO: another query to waifu to fetch jij parent info
 		const [mrModInfo, { data: cfModInfo }] = await Promise.all([mrModInfos(mods.getModrinthIds()), cfModInfos(mods.getCurseForgeIds())]);
 
 		const mrMods: Record<string, Project> = mrModInfo.reduce(
