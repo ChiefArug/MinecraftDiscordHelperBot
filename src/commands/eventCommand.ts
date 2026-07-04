@@ -25,7 +25,6 @@ const MethodDescriptors = `query MethodDescriptors($event: String!, $loader: Loa
         node {
           name
           mod {
-            name
 						curseforgeProjectId
 						modrinthProjectId
 						modIds
