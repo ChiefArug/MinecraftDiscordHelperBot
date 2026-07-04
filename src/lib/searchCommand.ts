@@ -63,7 +63,7 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 					modid,
 					cfId,
 					mrId,
-					versions: [loaderVersion],
+					versions: new Set([loaderVersion]),
 					extra: new Set(),
 				}));
 				this.attachExtras(node, extra);
@@ -103,10 +103,12 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 			if (filled.mrId !== undefined) addIndex(String(filled.mrId), i);
 
 			return Object.assign(filled, {
+				versions: [...filled.versions],
 				extra: this.processExtras(filled),
 			});
 		});
 
-		return { modInfos, index };}
+		return { modInfos, index };
+	}
 
 }

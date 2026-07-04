@@ -49,6 +49,8 @@ async function registerCommands(url: string) {
 
 	if (response.ok) {
 		console.log(`Registered ${commandsToRegister.length}/${Object.keys(COMMANDS).length} commands`);
+		const json = await response.json() as {id: string, name: string}[];
+		console.log(json.map(({id, name}) => `</${name}:${id}>`).join(', '));
 	} else {
 		console.error('Error registering commands');
 		const text = await response.text();

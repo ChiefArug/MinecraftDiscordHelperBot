@@ -26,5 +26,5 @@ export const query = async (q: string, variables: Record<string, any> = {}): Pro
 		// console.log(body);
 		return body['data'];
 	}
-	console.error('unknown grahql response: ' + body);
+	console.error('unknown grahql response: ' + JSON.stringify(body));
 };

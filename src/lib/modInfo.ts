@@ -7,7 +7,7 @@ import { CURSEFORGE, GITHUB, MODRINTH } from './emoji.ts';
 /** [curseforge, modrinth] */
 export type ModKey = [number | undefined, string | undefined];
 export type ModInfo = {
-	versions: LoaderVersion[];
+	versions: Set<LoaderVersion>;
 	modid: string;
 	cfId?: number;
 	mrId?: string;
@@ -18,7 +18,8 @@ export type FilledModInfo = ModInfo & {
 	links: Record<string, PartialEmoji>;
 	imageUrl?: string;
 }
-export type FinishedModInfo = Omit<FilledModInfo, 'extra'> & {
+export type FinishedModInfo = Omit<FilledModInfo, 'versions' | 'extra'> & {
+	versions: LoaderVersion[]
 	extra: string;
 }
 
@@ -89,28 +90,28 @@ export class ModMap {
 				// else if only mr is undefined, then we insert into just mr
 				return (s) => value.extra.add(s);
 			} else if (cf !== undefined && mr === undefined) {
-				cf.versions.push(version);
+				cf.versions.add(version);
 				cf.mrId = mrId;
 				this.mrMods.set(mrId, cf);
 				return (s) => cf.extra.add(s);
 				// ditto reverse for cf
 			} else if (cf === undefined && mr !== undefined) {
-				mr.versions.push(version);
+				mr.versions.add(version);
 				mr.cfId = cfId;
 				this.cfMods.set(cfId, mr);
 				return (s) => mr.extra.add(s);
 			} else if (cf !== undefined && mr !== undefined) {
 				// if they are the same we can just update one and the other will update due to reference equality
 				if (cf === mr) {
-					cf.versions.push(version);
+					cf.versions.add(version);
 					return (s) => cf.extra.add(s);
 				} else {
 					// not sure what to do here, it should be a very rare case.
 					console.error(
-						`Divergent CF and MR projects! CF: ${cfId} [${cf.modid} on ${cf.versions.map(([l, v]) => `${l}-${v}`)}], MR: ${mrId} [${mr.modid} on ${mr.versions.map(([l, v]) => `${l}-${v}`)}]]. Adding ${version}`,
+						`Divergent CF and MR projects! CF: ${cfId} [${cf.modid} on ${[...cf.versions].map(([l, v]) => `${l}-${v}`)}], MR: ${mrId} [${mr.modid} on ${[...mr.versions].map(([l, v]) => `${l}-${v}`)}]]. Adding ${version}`,
 					);
-					cf.versions.push(version);
-					mr.versions.push(version);
+					cf.versions.add(version);
+					mr.versions.add(version);
 					return (s) => {
 						cf.extra.add(s);
 						mr.extra.add(s);
@@ -122,7 +123,7 @@ export class ModMap {
 		} else if (cfId !== undefined) {
 			const cf = this.cfMods.get(cfId);
 			if (cf !== undefined) {
-				cf.versions.push(version);
+				cf.versions.add(version);
 				return (s) => cf.extra.add(s);
 			} else {
 				const value = valueGetter();
@@ -132,7 +133,7 @@ export class ModMap {
 		} else if (mrId !== undefined) {
 			const mr = this.mrMods.get(mrId);
 			if (mr !== undefined) {
-				mr.versions.push(version);
+				mr.versions.add(version);
 				return (s) => mr.extra.add(s);
 			} else {
 				const value = valueGetter();
@@ -147,7 +148,7 @@ export class ModMap {
 				this.jiJars.set(modid, value);
 				return (s) => value.extra.add(s);
 			} else {
-				current.versions.push(version);
+				current.versions.add(version);
 				return (s) => current.extra.add(s);
 			}
 		}

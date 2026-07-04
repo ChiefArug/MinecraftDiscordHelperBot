@@ -10,6 +10,7 @@ import { ContainerComponent, LinkButtonComponent, SectionComponent, TextComponen
 import { MODRINTH } from './lib/emoji.ts';
 import { cacheString } from './lib/cache.ts';
 import { makePaginationButtons } from './lib/pagination.ts';
+import { EventCommand } from './commands/eventCommand.ts';
 
 
 /*
@@ -55,7 +56,8 @@ const __commands = {
 	modid: new ModIdCommand('modid', 'Look up information about a particular Mod ID'),
 	query: new QueryCommand('query', 'Run the query passed in as a string'),
 	jij: new JijCommand('jij', 'Search for a mod or library being jar-in-jarred'),
-	class: new ClassCommand('class', 'Search for mods containing a particular class')
+	class: new ClassCommand('class', 'Search for mods containing a particular class'),
+	event: new EventCommand('event', 'Search for mods using a particular event'),
 } as Record<string, Command<any>>;
 
 export declare type CommandName = keyof typeof __commands;
