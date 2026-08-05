@@ -108,6 +108,16 @@ export const pairInRange = (target: number, max: number, min: number = 0, paddin
 };
 
 /**
+ * Get the maximum of a list according to some numerical value
+ * @param list The list to calculate the maximum of
+ * @param extract The value to use to compare the items in the list
+ */
+export const max: <T>(list: T[], extract?: (t: T) => number) => T = (list, extract) => {
+	if (extract !== undefined) return list.reduce((a, b) => extract(a) > extract(b) ? a : b);
+	return list.reduce((a, b) => a > b ? a : b);
+}
+
+/**
  * Get the kth element of l, unless either l or k is undefined
  * @param l
  * @param k

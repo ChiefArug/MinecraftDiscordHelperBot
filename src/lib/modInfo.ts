@@ -39,7 +39,7 @@ export function fillModInfo(modInfo: ModInfo, cf?: CFMod, mr?: ModrinthProject):
 	return Object.assign(modInfo, {
 		displayName: cf?.name ?? mr?.title,
 		links: links,
-		imageUrl: cf?.logo.url ?? mr?.icon_url,
+		imageUrl: cf?.logo?.url ?? mr?.icon_url,
 	});
 }
 

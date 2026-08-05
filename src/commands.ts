@@ -11,6 +11,7 @@ import { MODRINTH } from './lib/emoji.ts';
 import { cacheString } from './lib/cache.ts';
 import { makePaginationButtons } from './lib/pagination.ts';
 import { EventCommand } from './commands/eventCommand.ts';
+import { FieldUsageCommand } from './commands/fieldUsageCommand.ts';
 
 
 /*
@@ -58,6 +59,7 @@ const __commands = {
 	jij: new JijCommand('jij', 'Search for a mod or library being jar-in-jarred'),
 	class: new ClassCommand('class', 'Search for mods containing a particular class'),
 	event: new EventCommand('event', 'Search for mods using a particular event'),
+	field: new FieldUsageCommand('field', 'Search for mods referencing a particular field'),
 } as Record<string, Command<any>>;
 
 export declare type CommandName = keyof typeof __commands;
