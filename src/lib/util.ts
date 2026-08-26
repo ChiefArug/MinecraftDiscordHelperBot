@@ -78,16 +78,22 @@ export const isRegexSafe = (r: RegExp): boolean => {
  * Get the first n elements of an iterable efficiently
  * @param iterable The iterable to fetch from
  * @param n The number of elements
+ * @param filter Select elements that match the filter first
  */
-export const first = <T>(iterable: Iterable<T>, n: number): T[] => {
+export const first = <T>(iterable: Iterable<T>, n: number, filter: ((t: T) => boolean) = _ => true): T[] => {
 	const iter = iterable[Symbol.iterator]();
 	const out = [];
-	while (n > 0) {
+	const spares = [];
+	// select ones that match the filter
+	while (out.length < n) {
 		const v = iter.next();
 		if (v.done) break;
-		out.push(v.value);
-		n--;
+		if (filter(v.value)) out.push(v.value);
+		else if (spares.length < (n - out.length)) spares.push(v.value);
 	}
+	// fill with spares
+	for (let i = 0; out.length < n && i < spares.length; i++)
+		out.push(spares[i]);
 	return out;
 }
 

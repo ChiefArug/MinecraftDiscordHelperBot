@@ -29,24 +29,26 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 
 	/**
 	 * Parse out extra data from the result returned and attach it as extra data.
+	 * @param getOption Getter for options the command was passed.
 	 * @param node Data about the mod.
 	 * @param addExtra Call this with any extra data to be added
 	 * @protected
 	 */
-	protected abstract attachExtras(node: Mod, addExtra: (extra: string) => void): void;
+	protected abstract attachExtras(getOption: OptionGetter<O>, node: Mod, addExtra: (extra: string) => void): void;
 
 	/**
 	 * Process the 'extra' data from the provided FilledModInfo into a single string for display.
+	 * @param getOption Getter for options the command was passed.
 	 * @param mod The mod containing the extra data
 	 * @protected
 	 */
-	protected abstract processExtras(mod: FilledModInfo): string;
+	protected abstract processExtras(getOption: OptionGetter<O>, mod: FilledModInfo): string;
 
 	protected async executeImpl(env: Env, getOption: OptionGetter<O>, id: string): Promise<CommandResult> {
 		const variables = this.parseOptions(getOption);
 		if (typeof variables === 'string') return errorResult(variables);
 
-		const result = await query(this.getQuery(), variables) as { gameVersions: GameVersion[] };
+		const result = (await query(this.getQuery(), variables)) as { gameVersions: GameVersion[] };
 
 		const mods: ModMap = new ModMap();
 		for (const gameVersion of result.gameVersions) {
@@ -66,7 +68,7 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 					versions: new Set([loaderVersion]),
 					extra: new Set(),
 				}));
-				this.attachExtras(node, extra);
+				this.attachExtras(getOption, node, extra);
 			}
 		}
 
@@ -105,11 +107,10 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 
 			return Object.assign(filled, {
 				versions: [...filled.versions],
-				extra: this.processExtras(filled),
+				extra: this.processExtras(getOption, filled),
 			});
 		});
 
 		return { modInfos, index };
 	}
-
 }

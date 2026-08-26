@@ -51,24 +51,30 @@ export class JijCommand extends SearchCommand<Args> {
 		return JIJ;
 	}
 
-	protected parseOptions(getOption: OptionGetter<Args>): string | Record<string, any> {
+	private getPattern(getOption: OptionGetter<Args>): string | null {
 		const locator = getOption('locator');
-		if (!locator) return errorResult('locator parameter is required!');
+		if (!locator) return null;
 
 		const regex = getOption('regex', false);
 
-		const pattern = regex ? locator : regexEscape(locator);
-		return { predicate: { matches: pattern } }
+		return regex ? locator : regexEscape(locator);
 	}
 
-	protected attachExtras(node: Mod, addExtra: (extra: string) => void): void {
+	protected parseOptions(getOption: OptionGetter<Args>): string | Record<string, any> {
+		const regex = this.getPattern(getOption);
+		if (regex === null) return errorResult('locator parameter is required!');
+		return { predicate: { matches: regex } }
+	}
+
+	protected attachExtras(getOption: OptionGetter<Args>, node: Mod, addExtra: (extra: string) => void): void {
 		if (node.nestedArtifactsFlat === undefined || node.nestedArtifactsFlat === null) return;
 		node.nestedArtifactsFlat.forEach(nested => addExtra(`\`${nested.id}\` (${nested.version})`));
 	}
 
-	protected processExtras(mod: FilledModInfo): string {
+	protected processExtras(getOption: OptionGetter<Args>, mod: FilledModInfo): string {
+		const regex = new RegExp(this.getPattern(getOption)!);
 		return mod.extra.size == 0
 			? ''
-			: 'JiJs: ' + first(mod.extra, 5).join(', ') + (mod.extra.size > 5 ? ` and ${mod.extra.size - 5} more` : '');
+			: 'JiJs: ' + first(mod.extra, 5, regex.test.bind(regex)).join(', ') + (mod.extra.size > 5 ? ` and ${mod.extra.size - 5} more` : '');
 	}
 }
