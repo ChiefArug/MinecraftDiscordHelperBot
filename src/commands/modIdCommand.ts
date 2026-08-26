@@ -58,12 +58,12 @@ export class ModIdCommand extends SearchCommand<Args> {
 		return { predicate: regex ? { matches: modid } : { equals: modid } };
 	}
 
-	protected attachExtras(node: Mod, addExtra: (extra: string) => void): void {
+	protected attachExtras(getOption: OptionGetter<Args>, node: Mod, addExtra: (extra: string) => void): void {
 		const modIds = node.modIds ?? undefined;
 		if (modIds !== undefined && modIds.length > 0) modIds.slice(1).forEach(addExtra);
 	}
 
-	protected processExtras(mod: FilledModInfo): string {
+	protected processExtras(getOption: OptionGetter<Args>, mod: FilledModInfo): string {
 		return mod.extra.size == 0
 			? ''
 			: 'Other ModIds: ' +

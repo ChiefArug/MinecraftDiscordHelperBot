@@ -70,11 +70,11 @@ export class ClassCommand extends SearchCommand<Args> {
 		return { predicate }
 	}
 
-	protected attachExtras(node: Mod, addExtra: (extra: string) => void): void {
+	protected attachExtras(getOption: OptionGetter<Args>, node: Mod, addExtra: (extra: string) => void): void {
 		node.classes.forEach(({ name }) => addExtra(name))
 	}
 
-	protected processExtras(mod: FilledModInfo): string {
+	protected processExtras(getOption: OptionGetter<Args>, mod: FilledModInfo): string {
 		return 	'Classes: ' +
 			first(mod.extra, 5)
 				.map((e) => `\`${e.split('/').pop()}\``)
