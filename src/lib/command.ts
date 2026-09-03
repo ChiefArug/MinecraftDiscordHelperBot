@@ -6,6 +6,7 @@ import { commandResultKey, saveToCache } from './cache.ts';
 import { countPages, getPage, makePaginationButtons } from './pagination.ts';
 import { ModInfoComponent } from './extraComponents.ts';
 import type { FinishedModInfo } from './modInfo.ts';
+import { error, errorResponse, extractStack } from './error.ts';
 
 export type OptionKey<O extends CommandOptions> = keyof O & string;
 
@@ -146,9 +147,9 @@ export abstract class Command<O extends CommandOptions> {
 						return fetch(new ComponentResponse(componentResult).request(new URL(base + '/messages/@original'), 'PATCH'));
 					},
 					(err) => {
-						console.error(`Error responding to request ${int.id}: ${err}, ${err.stack}`);
+						const message = errorResponse(int.id, extractStack(err), int);
 						return fetch(
-							new MessageResponse(`An error occurred executing that. Id for logging: ${int.id}. Go yell at <@812094192133996624>.`).request(
+							new MessageResponse(message).request(
 								new URL(base + '/messages/@original'),
 								'PATCH',
 							),
@@ -158,20 +159,14 @@ export abstract class Command<O extends CommandOptions> {
 				// second stage, more error handling. will send a new message rather than try edit the original response
 				.then((res) => {
 					if (res.status !== 200) {
-						return Promise.all([
-							res.text().then((txt) => console.error(`Failed to respond to ${int.id}: ${res.status}, ${txt}`)),
-							fetch(
-								new MessageResponse(
-									`An error occurred responding to that request :(. Id for logging: ${int.id}. Go yell at <@812094192133996624>`,
-								).request(new URL(base), 'POST'),
-							),
-						]);
+						return res.text().then(txt => {
+							const message = errorResponse(int.id, txt, int);
+							return fetch(new MessageResponse(message).request(new URL(base), 'POST'));
+						});
 					}
 				})
 				.catch((err) => {
-					console.error(
-						`Really failed to respond to request! ${int.id}, ${err}, ${int.data?.name}, ${int.data?.options?.map((o) => o.name + ': ' + o.value)}, ${err.stack}`,
-					);
+					error(int.id, extractStack(err), int);
 				}),
 		);
 

@@ -79,7 +79,14 @@ export class EventCommand extends Command<Args> {
 		if (!event || !versionArg || !loaderArg) return errorResult('event, version and modloader parameters are required!');
 		if (!(Loaders.includes(loaderArg))) return errorResult('Unknown loader `' + loaderArg + '`. Try one of: `' + Loaders.join('`,`') + '`');
 
-		const result = await query(MethodDescriptors, { event: `(L${event};)V`, loader: loaderArg, version: versionArg }) as { gameVersion: GameVersion };
+		const result = await query<{ gameVersion: GameVersion }>(MethodDescriptors, {
+			event: `(L${event};)V`,
+			loader: loaderArg,
+			version: versionArg,
+		});
+
+		if (typeof result === 'string')
+			return errorResult(result);
 
 		const mods: ModMap = new ModMap();
 		const { loader, version } = result.gameVersion;

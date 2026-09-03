@@ -81,9 +81,11 @@ export class FieldUsageCommand extends Command<Args> {
 		if (!clazz || !field || !versionArg || !loaderArg) return errorResult('class, field, version and modloader parameters are required!');
 		if (!Loaders.includes(loaderArg)) return errorResult('Unknown loader `' + loaderArg + '`. Try one of: `' + Loaders.join('`,`') + '`');
 
-		const result = (await query(FieldUsages, { class: clazz, field: field, loader: loaderArg, version: versionArg })) as {
+		const result = await query<{
 			gameVersion: GameVersion;
-		};
+		}>(FieldUsages, { class: clazz, field: field, loader: loaderArg, version: versionArg });
+		
+		if (typeof result === 'string') return errorResult(result);
 
 		const mods: ModMap = new ModMap();
 		const { loader, version } = result.gameVersion;

@@ -48,7 +48,9 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 		const variables = this.parseOptions(getOption);
 		if (typeof variables === 'string') return errorResult(variables);
 
-		const result = (await query(this.getQuery(), variables)) as { gameVersions: GameVersion[] };
+		const result = await query<{ gameVersions: GameVersion[] }>(this.getQuery(), variables);
+
+		if (typeof result === 'string') return errorResult(result);
 
 		const mods: ModMap = new ModMap();
 		for (const gameVersion of result.gameVersions) {

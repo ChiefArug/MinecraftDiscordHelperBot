@@ -12,3 +12,4 @@ export const GITHUB: PartialEmoji = {
 	name: 'github',
 	id: '1516002278199525508',
 };
+export const CHIEFARUG: string = '<@812094192133996624>'
