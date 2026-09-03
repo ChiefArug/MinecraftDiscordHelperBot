@@ -1,5 +1,5 @@
 import { CHIEFARUG } from './discord_constants.ts';
-import { CommandInteraction, Interaction } from './discord.ts';
+import { CommandInteraction } from './discord.ts';
 
 export function log(id: string, message: string, interaction?: CommandInteraction<any>): void {
 	if (interaction !== undefined) {
@@ -36,6 +36,7 @@ export function warning(id: string, message: string, interaction?: CommandIntera
 	}
 }
 
+// TODO: DM me with all errors as well.
 export function error(id: string, message: string, interaction?: CommandInteraction<any>): void {
 	if (interaction !== undefined) {
 		const {
