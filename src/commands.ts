@@ -7,7 +7,7 @@ import { PingCommand } from './commands/pingCommand.ts';
 import { ClassCommand } from './commands/classCommand.ts';
 import { test } from './modrinth.ts';
 import { ContainerComponent, LinkButtonComponent, SectionComponent, TextComponent, ThumbnailComponent } from './lib/component.ts';
-import { MODRINTH } from './lib/emoji.ts';
+import { MODRINTH } from './lib/discord_constants.ts';
 import { cacheString } from './lib/cache.ts';
 import { makePaginationButtons } from './lib/pagination.ts';
 import { EventCommand } from './commands/eventCommand.ts';

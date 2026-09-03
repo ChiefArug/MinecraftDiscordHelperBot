@@ -2,7 +2,7 @@ import type { LoaderVersion } from './util.ts';
 import type { PartialEmoji } from './discord.ts';
 import type { ModrinthProject } from '../modrinth.ts';
 import type { CFMod } from './cfTypes.ts';
-import { CURSEFORGE, GITHUB, MODRINTH } from './emoji.ts';
+import { CURSEFORGE, GITHUB, MODRINTH } from './discord_constants.ts';
 
 /** [curseforge, modrinth] */
 export type ModKey = [number | undefined, string | undefined];

@@ -113,6 +113,6 @@ export abstract class SearchCommand<O extends CommandOptions> extends Command<O>
 			});
 		});
 
-		return { modInfos, index };
+		return { modInfos, index, metadata: {} };
 	}
 }

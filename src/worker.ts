@@ -48,13 +48,24 @@ export default {
 				// Using the incoming headers, verify this request actually came from discord.
 				const signature = request.headers.get('x-signature-ed25519');
 				const timestamp = request.headers.get('x-signature-timestamp');
-				if (!signature || !timestamp) return new Response('Missing signature headers', { status: 400 });
+				if (!signature || !timestamp) {
+					console.error({
+						id: 'HEADERS',
+						message: 'Unable to verify request due to missing headers',
+						request: request
+					});
+					return new Response('Missing signature headers', { status: 400 })
+				}
 
 				const body = await request.clone().arrayBuffer();
 
 				const isValidRequest = await verifyKey(body, signature, timestamp, env.DISCORD_PUBLIC_KEY);
 				if (!isValidRequest) {
-					console.error('Invalid Request');
+					console.error({
+						id: 'VERIFY',
+						message: 'Invalid Request',
+						request: request
+					});
 					return new Response('Bad request signature.', { status: 401 });
 				}
 
@@ -144,7 +155,6 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 			if (fromCache === undefined) return new MessageResponse('Message cache expired');
 
 			const { index, modInfos } = fromCache;
-			console.log(typeof index, typeof modInfos);
 			if (typeof index !== 'object' || !Array.isArray(modInfos)) return new MessageResponse('Message cache corrupted');
 			const options: SelectOption[] = modInfos.map((m, i) => [m, i] as const).slice(...pairInRange(firstComponent, modInfos.length, 0, 12)).map(
 				([mod, i]) =>
@@ -160,12 +170,10 @@ async function handleButton(message: ComponentInteraction): Promise<InteractionR
 					),
 			);
 
-			return new ModalResponse('A Modal!', `m-${id}-${message.message.id}`, [
-				new TextComponent(
-					'Choose a mod to collapse the embed to, or delete the message\n\nMods can be identified by most information provided by the bot, such as index, modid, curseforge link, modrinth link or github link.\n-# Note if any of these are not unique between mods then you cannot select a mod through it.',
-				),
-				new LabelComponent('Choose a mod', new StringSelectComponent(options, 'choose', 'Choose a mod', false)),
-				new LabelComponent('Or identify the mod', new TextInputComponent(TextInputStyle.SHORT, 'identifier', '', '', false)),
+			return new ModalResponse('Manage response', `m-${id}-${message.message.id}`, [
+				new TextComponent(`-# Response metadata:\n-# - Results found: ${modInfos.length}`),
+				new LabelComponent('Choose a mod to collapse the embed to', new StringSelectComponent(options, 'choose', 'Choose a mod', false)),
+				new LabelComponent('Or identify the mod (ie modid, github link)', new TextInputComponent(TextInputStyle.SHORT, 'identifier', '', '', false)),
 				new LabelComponent('Or tick the box to delete the message instead', new CheckboxComponent('del')),
 			]);
 		}

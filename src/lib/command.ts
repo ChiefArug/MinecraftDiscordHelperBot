@@ -21,7 +21,7 @@ export type OptionGetter<O extends CommandOptions> = __defaultedOptionGetter<O> 
 export type StringArg<K extends string> = { [k in K]: typeof CommandOptionType.STRING };
 export type BoolArg<K extends string> = { [k in K]: typeof CommandOptionType.BOOLEAN };
 export type SelectionArg<K extends readonly string[]> = { [k in keyof K]: typeof CommandOptionType.STRING };
-export type CommandSuccessResult = { modInfos: FinishedModInfo[]; index: Record<string, number> };
+export type CommandSuccessResult = { modInfos: FinishedModInfo[]; index: Record<string, number>, metadata: {} };
 export type CommandFailResult = { error: string };
 export type CommandComponentResult = { components: Component[] };
 export type CommandResult = CommandSuccessResult | CommandFailResult | CommandComponentResult;
@@ -131,12 +131,12 @@ export abstract class Command<O extends CommandOptions> {
 						if ('error' in result) componentResult.push(new TextComponent(result.error));
 						else if ('components' in result) componentResult.push(...result.components);
 						else {
-							const { index, modInfos } = result;
+							const { index, modInfos, metadata } = result;
 							const components = modInfos.map((mi, i) => new ModInfoComponent(mi, i));
 							componentResult.push(...getPage(components, 1));
 							const maxPage = countPages(components);
 
-							if (index !== undefined) ctx.waitUntil(saveToCache({ index, modInfos }, commandResultKey(int.id)));
+							if (index !== undefined) ctx.waitUntil(saveToCache({ index, modInfos, metadata }, commandResultKey(int.id)));
 
 							if (componentResult.length != components.length) {
 								// add pagination if needed

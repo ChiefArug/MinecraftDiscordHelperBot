@@ -28,16 +28,16 @@ export const query = async <T extends object>(q: string, variables: Record<strin
 	if (response.status !== 200) {
 		error(
 			'WAIFU',
-			`Unknown status code recieved back: ${response.status} [${response.statusText}]. Body: ${await response.text().catch(() => '')}`,
+			`Unknown status code received: ${response.status} [${response.statusText}]. Body: ${await response.text().catch(() => '')}`,
 		);
 		return thisIsAnExWAIFU;
 	}
 
-	const body = (await response.json().catch(() => ({error: 'Response is not JSON.'}))) as { error: string; data: object };
-	if ('error' in body) {
-		return body.error;
+	const body = (await response.json().catch(() => ({ error: 'Response is not JSON.' }))) as { errors: { message :string }[], data: object };
+	if ('errors' in body) {
+		return `WAIFU returned error(s): ${body.errors.map(({message}) => message).join('\n')}`;
 	} else if ('data' in body) {
-		return body['data'];
+		return body['data'] as T;
 	}
 	error('WAIFU', 'Unknown GraphQL response: ' + JSON.stringify(body));
 	return thisIsAnExWAIFU;

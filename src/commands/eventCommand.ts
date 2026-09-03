@@ -154,6 +154,6 @@ export class EventCommand extends Command<Args> {
 			});
 		});
 
-		return { modInfos, index };
+		return { modInfos, index, metadata: {} };
 	}
 }

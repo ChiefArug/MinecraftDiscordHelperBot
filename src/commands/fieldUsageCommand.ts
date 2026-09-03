@@ -84,7 +84,7 @@ export class FieldUsageCommand extends Command<Args> {
 		const result = await query<{
 			gameVersion: GameVersion;
 		}>(FieldUsages, { class: clazz, field: field, loader: loaderArg, version: versionArg });
-		
+
 		if (typeof result === 'string') return errorResult(result);
 
 		const mods: ModMap = new ModMap();
@@ -161,6 +161,6 @@ export class FieldUsageCommand extends Command<Args> {
 			});
 		});
 
-		return { modInfos, index };
+		return { modInfos, index, metadata: {} };
 	}
 }
