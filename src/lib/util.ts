@@ -137,5 +137,5 @@ export const timeoutFetch = async (input: RequestInfo | URL, timeout?: number, i
         fetch(input, init),
         sleep(ms)
     ]);
-    return r ?? new Response(null, { status: -1, statusText: `Timed out (${ms}ms) while fetching` });
+    return r ?? new Response(null, { status: 522, statusText: `Timed out (${ms}ms) while fetching` });
 }
