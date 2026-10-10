@@ -1,5 +1,6 @@
 import { env } from './lib/safeEnv.ts';
 import { error } from './lib/error.ts';
+import { timeoutFetch } from './lib/util.ts';
 
 const URL = 'https://waifu.neoforged.net/api/graphql';
 
@@ -13,7 +14,7 @@ const thisIsAnExWAIFU = "This WAIFU is not pining, it's passed on. This WAIFU is
  * @returns A promise holding either the data result, or a string describing an error that is safe to display to the user.
  */
 export const query = async <T extends object>(q: string, variables: Record<string, any> = {}): Promise<T | string> => {
-	const response = await fetch(URL, {
+	const response = await timeoutFetch(URL, 25_000, {
 		method: 'POST',
 		headers: {
 			Authorization: env().WAIFU_TOKEN,
@@ -30,15 +31,21 @@ export const query = async <T extends object>(q: string, variables: Record<strin
 			'WAIFU',
 			`Unknown status code received: ${response.status} [${response.statusText}]. Body: ${await response.text().catch(() => '')}`,
 		);
-		return thisIsAnExWAIFU;
+		return `ErrorType: Status ${response.status}\n` + thisIsAnExWAIFU;
 	}
 
-	const body = (await response.json().catch(() => ({ error: 'Response is not JSON.' }))) as { errors: { message :string }[], data: object };
-	if ('errors' in body) {
-		return `WAIFU returned error(s): ${body.errors.map(({message}) => message).join('\n')}`;
+	const body = (await response.json().catch(() => ({ error: 'Response is not JSON.' }))) as {
+		error?: string;
+		errors?: { message: string }[];
+		data: object;
+	};
+	if (body.errors !== undefined) {
+		return `WAIFU returned error(s): ${body.errors.map(({ message }) => message).join('\n')}`;
+	} else if (body.error !== undefined) {
+		return `WAIFU returned error: ${body.error}`;
 	} else if ('data' in body) {
 		return body['data'] as T;
 	}
 	error('WAIFU', 'Unknown GraphQL response: ' + JSON.stringify(body));
-	return thisIsAnExWAIFU;
+	return 'ErrorType: UnknownResponse\n' + thisIsAnExWAIFU;
 };

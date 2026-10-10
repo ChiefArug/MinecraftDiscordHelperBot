@@ -131,3 +131,11 @@ export const max: <T>(list: T[], extract?: (t: T) => number) => T = (list, extra
 export const optionalIndex = <K extends string | number | symbol, V>(l: Record<K,V>, k: K | undefined): V | undefined => k ? l[k] : undefined;
 
 
+export const timeoutFetch = async (input: RequestInfo | URL, timeout?: number, init?: RequestInit<RequestInitCfProperties>): Promise<Response> => {
+	let ms = timeout ?? 20_000;
+	const r = await Promise.race([
+        fetch(input, init),
+        sleep(ms)
+    ]);
+    return r ?? new Response(null, { status: -1, statusText: `Timed out (${ms}ms) while fetching` });
+}
